@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>simple.vert</file>
+        <file>simple.frag</file>
+    </qresource>
+    <qresource prefix="/shadows">
+        <file>depth.frag</file>
+        <file>depth.vert</file>
+        <file>omni_depth.vert</file>
+        <file>omni_depth.frag</file>
+    </qresource>
+</RCC>
