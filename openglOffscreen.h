@@ -8,7 +8,7 @@
 class COpenglOffscreen : public COpenglBase
 {
 public:
-    COpenglOffscreen(int associatedObjectHandle,int resX,int resY);
+    COpenglOffscreen(int associatedObjectHandle,int resX,int resY, const QSurfaceFormat& format);
     ~COpenglOffscreen();
 
     void initGL();

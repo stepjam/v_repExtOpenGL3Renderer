@@ -207,13 +207,20 @@ void executeRenderCommands(bool windowed,int message,void* data)
             COpenglWidget* oglWidget=getWidget(visionSensorOrCameraId);
             if (oglWidget==NULL)
             {
+                // Request Opengl 3.2
                 QGLFormat glFormat;
                 glFormat.setVersion( 3, 2 );
-                glFormat.setProfile( QGLFormat::CoreProfile ); // Requires >=Qt-4.8.0
+                glFormat.setProfile( QGLFormat::CoreProfile );
                 glFormat.setSampleBuffers( true );
 
                 oglWidget=new COpenglWidget(visionSensorOrCameraId, glFormat);
                 oglWidgets.push_back(oglWidget);
+
+                oglWidget->makeContextCurrent();
+                std::string glVersion = std::string((const char*)glGetString(GL_VERSION));
+                float version = std::stof(glVersion);
+                if (version < 3.2)
+                    std::cout << "This renderer requires atleast OpenGL 3.2. The version available is: " << glVersion << std::endl;
 
                 oglWidget->initGL();
                 oglWidget->showAtGivenSizeAndPos(resolutionX,resolutionY,posX,posY);
@@ -238,8 +245,18 @@ void executeRenderCommands(bool windowed,int message,void* data)
             }
             if (oglOffscreen==NULL)
             {
-                oglOffscreen=new COpenglOffscreen(visionSensorOrCameraId,resolutionX,resolutionY);
+                // Request Opengl 3.2
+                QSurfaceFormat glFormat;
+                glFormat.setVersion( 3, 2 );
+                glFormat.setProfile( QSurfaceFormat::CoreProfile );
+                oglOffscreen=new COpenglOffscreen(visionSensorOrCameraId,resolutionX,resolutionY,glFormat);
                 oglOffscreens.push_back(oglOffscreen);
+
+                oglOffscreen->makeContextCurrent();
+                std::string glVersion = std::string((const char*)glGetString(GL_VERSION));
+                float version = std::stof(glVersion);
+                if (version < 3.2)
+                    std::cout << "This renderer requires atleast OpenGL 3.2. The version available is: " << glVersion << std::endl;
 
                 oglOffscreen->initGL();
             }

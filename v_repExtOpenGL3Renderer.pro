@@ -1,4 +1,4 @@
-TARGET = v_repExtExternalRenderer
+TARGET = v_repExtOpenGL3Renderer
 TEMPLATE = lib
 DEFINES -= UNICODE
 CONFIG += shared

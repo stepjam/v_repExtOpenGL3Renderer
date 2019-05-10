@@ -1,6 +1,6 @@
 #include "offscreenGlContext.h"
 
-COffscreenGlContext::COffscreenGlContext(int resX,int resY) : QObject()
+COffscreenGlContext::COffscreenGlContext(int resX,int resY,const QSurfaceFormat& format) : QObject()
 {
     _qOffscreenSurface=new QOffscreenSurface();
     QSurfaceFormat f;
@@ -17,7 +17,7 @@ COffscreenGlContext::COffscreenGlContext(int resX,int resY) : QObject()
     if (_qOffscreenSurface->isValid())
     {
         _qContext=new QOpenGLContext();
-        _qContext->setFormat(_qOffscreenSurface->format());
+        _qContext->setFormat(format);
         _qContext->create();
     }
 

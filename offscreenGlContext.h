@@ -9,7 +9,7 @@ class COffscreenGlContext : public QObject
     Q_OBJECT
 public:
 
-    COffscreenGlContext(int resX,int resY);
+    COffscreenGlContext(int resX,int resY,const QSurfaceFormat& format);
     virtual ~COffscreenGlContext();
 
     bool makeCurrent();
