@@ -39,12 +39,12 @@ void COpenglBase::bindFramebuffer()
 
 void COpenglBase::initGL()
 {
-    makeContextCurrent();
+    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
-    glClearColor(0.0f,0.0f,0.0f,1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    f->glClearColor(0.0f,0.0f,0.0f,1.0f);
+    f->glEnable(GL_DEPTH_TEST);
+    f->glEnable(GL_BLEND);
+    f->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Prepare a complete shader program…
     if ( !prepareShaderProgram(m_shader, ":/simple.vert", ":/simple.frag", "") )

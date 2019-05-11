@@ -17,14 +17,17 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
     if(lightType == sim_light_omnidirectional_subtype){
         // We treat the depthMap as a cube map.
         f->glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
+        f->glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         for (unsigned int i = 0; i < 6; ++i)
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        {
+            f->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, depthMap, 0);
+        }
         f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        f->glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     } else {
         f->glBindTexture(GL_TEXTURE_2D, depthMap);
         f->glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -199,10 +202,7 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
                     depthShader->uniformLocation("lightPos"), lightPos);
         depthShader->setUniformValue(
                     depthShader->uniformLocation("far_plane"), farPlane);
-        QString lightSpaceMatrix = "lightSpaceMatrix[";
         for(int i = 0; i < 6; i++){
-            depthShader->setUniformValue(
-                        depthShader->uniformLocation("face"), 0);
             depthShader->setUniformValue(
                         depthShader->uniformLocation("lightSpaceMatrix"), lightSpaceMats[i]);
 
@@ -215,7 +215,7 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
                 (*meshesToRender)[i]->renderDepth(depthShader);
             }
         }
-        } else {
+    } else {
         depthShader->setUniformValue(
                     depthShader->uniformLocation("lightSpaceMatrix"), lightSpaceMat);
         // render depth of scene to texture (from light's perspective)

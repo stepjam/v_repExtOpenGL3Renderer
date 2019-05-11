@@ -33,7 +33,8 @@ COcMesh::COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int 
     setupMesh();
 
     // create a white texture if there is no texture
-    glGenTextures(1,&blankTexture);
+    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    f->glGenTextures(1,&blankTexture);
 }
 
 COcMesh::~COcMesh()

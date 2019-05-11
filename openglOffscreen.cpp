@@ -27,6 +27,7 @@ bool COpenglOffscreen::isResolutionSame(int resX,int resY)
 
 void COpenglOffscreen::initGL()
 {
+    makeContextCurrent();
     COpenglBase::initGL();
 }
 

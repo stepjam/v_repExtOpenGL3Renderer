@@ -13,6 +13,7 @@ COpenglWidget::~COpenglWidget()
 
 void COpenglWidget::initGL()
 {
+    makeContextCurrent();
     COpenglBase::initGL();
 }
 
