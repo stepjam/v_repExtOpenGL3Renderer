@@ -51,8 +51,6 @@ struct SpotLight {
     sampler2D shadowMap;
 };
 
-#define MAX_LIGHTS 10
-
 out vec4 FragColor;
 
 in vec3 FragPos;
@@ -63,9 +61,26 @@ uniform sampler2D texture0;
 
 uniform vec3 sceneAmbient;
 uniform vec3 viewPos;
-uniform DirLight dirLights[MAX_LIGHTS];
-uniform PointLight pointLights[MAX_LIGHTS];
-uniform SpotLight spotLights[MAX_LIGHTS];
+
+// Some graphics cards appear not to support arrays. One way around this is to explicitly roll out the array.
+#define MAX_LIGHTS 5
+uniform DirLight dirLight0;
+uniform DirLight dirLight1;
+uniform DirLight dirLight2;
+uniform DirLight dirLight3;
+uniform DirLight dirLight4;
+
+uniform PointLight pointLight0;
+uniform PointLight pointLight1;
+uniform PointLight pointLight2;
+uniform PointLight pointLight3;
+uniform PointLight pointLight4;
+
+uniform SpotLight spotLight0;
+uniform SpotLight spotLight1;
+uniform SpotLight spotLight2;
+uniform SpotLight spotLight3;
+uniform SpotLight spotLight4;
 
 // For some reason, we are not allowed to store samplerCube in structs or arrays
 // So allow a max of 5
@@ -111,40 +126,77 @@ void main()
     vec3 result = vec3(0.0);
 
     // phase 1: directional lighting
-    for(int i = 0; i < dirLightLen; i++)
+    for(int i = 0; i < dirLightLen && i < MAX_LIGHTS; i++)
     {
-        vec3 lresult = CalcDirLight(dirLights[i], norm, viewDir);
-        float shadow = ShadowCalculation(dirLights[i].lightSpaceMatrix,
-                                         dirLights[i].position,
-                                         dirLights[i].shadowMap);
+        vec3 lresult;
+        float shadow = 0.0;
+        // We are not allowed to store the struct in a temp, apparently.
+        if (i == 0){
+            lresult = CalcDirLight(dirLight0, norm, viewDir);
+            shadow = ShadowCalculation(dirLight0.lightSpaceMatrix, dirLight0.position, dirLight0.shadowMap);
+        } else if (i == 1){
+            lresult = CalcDirLight(dirLight1, norm, viewDir);
+            shadow = ShadowCalculation(dirLight1.lightSpaceMatrix, dirLight1.position, dirLight1.shadowMap);
+        } else if (i == 2){
+            lresult = CalcDirLight(dirLight2, norm, viewDir);
+            shadow = ShadowCalculation(dirLight2.lightSpaceMatrix, dirLight2.position, dirLight2.shadowMap);
+        } else if (i == 3){
+            lresult = CalcDirLight(dirLight3, norm, viewDir);
+            shadow = ShadowCalculation(dirLight3.lightSpaceMatrix, dirLight3.position, dirLight3.shadowMap);
+        } else if (i == 4){
+            lresult = CalcDirLight(dirLight4, norm, viewDir);
+            shadow = ShadowCalculation(dirLight4.lightSpaceMatrix, dirLight4.position, dirLight4.shadowMap);
+        }
         result += lresult * (1.0 - shadow);
     }
     // phase 2: point lights
-    for(int i = 0; i < pointLightLen; i++)
+    for(int i = 0; i < pointLightLen && i < MAX_LIGHTS; i++)
     {
-        vec3 lresult = CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+        vec3 lresult;
         float shadow = 0.0;
 
-        if (i == 0)
-            shadow = PointShadowCalculation(pointLights[i].position, depthCubeMap0, pointLights[i].farPlane);
-        else if (i == 1)
-            shadow = PointShadowCalculation(pointLights[i].position, depthCubeMap1, pointLights[i].farPlane);
-        else if (i == 2)
-            shadow = PointShadowCalculation(pointLights[i].position, depthCubeMap2, pointLights[i].farPlane);
-        else if (i == 3)
-            shadow = PointShadowCalculation(pointLights[i].position, depthCubeMap3, pointLights[i].farPlane);
-        else if (i == 4)
-            shadow = PointShadowCalculation(pointLights[i].position, depthCubeMap4, pointLights[i].farPlane);
+        if (i == 0){
+            lresult = CalcPointLight(pointLight0, norm, FragPos, viewDir);
+            shadow = PointShadowCalculation(pointLight0.position, depthCubeMap0, pointLight0.farPlane);
+        }else if (i == 1){
+            lresult = CalcPointLight(pointLight1, norm, FragPos, viewDir);
+            shadow = PointShadowCalculation(pointLight1.position, depthCubeMap1, pointLight1.farPlane);
+        }else if (i == 2){
+            lresult = CalcPointLight(pointLight2, norm, FragPos, viewDir);
+            shadow = PointShadowCalculation(pointLight2.position, depthCubeMap2, pointLight2.farPlane);
+        }else if (i == 3){
+            lresult = CalcPointLight(pointLight3, norm, FragPos, viewDir);
+            shadow = PointShadowCalculation(pointLight3.position, depthCubeMap3, pointLight3.farPlane);
+        }else if (i == 4){
+            lresult = CalcPointLight(pointLight4, norm, FragPos, viewDir);
+            shadow = PointShadowCalculation(pointLight4.position, depthCubeMap4, pointLight4.farPlane);
+        }
 
         result += lresult * (1.0 - shadow);
     }
     // phase 3: spot light
-    for(int i = 0; i < spotLightLen; i++)
+    for(int i = 0; i < spotLightLen && i < MAX_LIGHTS; i++)
     {
-        vec3 lresult = CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
-        float shadow = ShadowCalculation(spotLights[i].lightSpaceMatrix,
-                                         spotLights[i].position,
-                                         spotLights[i].shadowMap);
+        vec3 lresult;
+        float shadow = 0.0;
+        // We are not allowed to store the struct in a temp, apparently.
+        if (i == 0){
+            lresult = CalcSpotLight(spotLight0, norm, FragPos, viewDir);
+            shadow = ShadowCalculation(spotLight0.lightSpaceMatrix, spotLight0.position, spotLight0.shadowMap);
+        } else if (i == 1){
+            lresult = CalcSpotLight(spotLight1, norm, FragPos, viewDir);
+            shadow = ShadowCalculation(spotLight1.lightSpaceMatrix, spotLight1.position, spotLight1.shadowMap);
+        } else if (i == 2){
+            lresult = CalcSpotLight(spotLight2, norm, FragPos, viewDir);
+            shadow = ShadowCalculation(spotLight2.lightSpaceMatrix, spotLight2.position, spotLight2.shadowMap);
+        } else if (i == 3){
+            lresult = CalcSpotLight(spotLight3, norm, FragPos, viewDir);
+            shadow = ShadowCalculation(spotLight3.lightSpaceMatrix, spotLight3.position, spotLight3.shadowMap);
+        } else if (i == 4){
+            lresult = CalcSpotLight(spotLight4, norm, FragPos, viewDir);
+            shadow = ShadowCalculation(spotLight4.lightSpaceMatrix, spotLight4.position, spotLight4.shadowMap);
+        }
+
         result += lresult * (1.0 - shadow);
     }
 

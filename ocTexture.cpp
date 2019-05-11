@@ -47,10 +47,10 @@ void COcTexture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,i
     f->glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,_textureSizeX,_textureSizeY,0,GL_RGBA,GL_UNSIGNED_BYTE,&_textureBuff[0]);
     f->glGenerateMipmap(GL_TEXTURE_2D);
 
-    GLint colInt=GL_NEAREST_MIPMAP_NEAREST;//GL_NEAREST;
+    GLint colInt=GL_NEAREST;
     if (interpolateColors)
-        colInt=GL_LINEAR_MIPMAP_LINEAR;//GL_LINEAR;
-    f->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);//GL_LINEAR); // keep to GL_LINEAR here!!
+        colInt=GL_LINEAR;
+    f->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     f->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,colInt);
     GLint repS=GL_CLAMP;
     if (repeatU)
@@ -60,7 +60,6 @@ void COcTexture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,i
     if (repeatV)
         repT=GL_REPEAT;
     f->glTexParameteri (GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,repT);
-    f->glEnable(GL_TEXTURE_2D);
     f->glBindTexture(GL_TEXTURE_2D,_textureName);
 }
 

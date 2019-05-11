@@ -95,15 +95,13 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
 
     if (lightType == sim_light_directional_subtype)
     {
-        lightName.append("dirLights[");
+        lightName.append("dirLight");
         lightName.append(QString::number(counter));
-        lightName.append("]");
         camShader->setUniformValue(camShader->uniformLocation("dirLightLen"), counter+1);
         lightProjection.ortho(-2.0f, 2.0f, -2.0f, 2.0f, near_plane, far_plane);
     } else if (lightType == sim_light_omnidirectional_subtype) {
-        lightName.append("pointLights[");
+        lightName.append("pointLight");
         lightName.append(QString::number(counter));
-        lightName.append("]");
         camShader->setUniformValue(camShader->uniformLocation("pointLightLen"), counter+1);
 
         // 90 degrees making the viewing field large enough to properly fill a single face of the cubemap
@@ -125,9 +123,8 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
             lightSpaceMats[i] = lightProjection * lightSpaceMats[i];
 
     } else if (lightType == sim_light_spot_subtype) {
-        lightName.append("spotLights[");
+        lightName.append("spotLight");
         lightName.append(QString::number(counter));
-        lightName.append("]");
         camShader->setUniformValue(camShader->uniformLocation("spotLightLen"), counter+1);
 
         lightProjection.perspective(cutoffAngle*radToDeg, aspect, near_plane, far_plane);
