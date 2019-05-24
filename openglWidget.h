@@ -26,7 +26,6 @@ protected:
     void resizeEvent(QResizeEvent* rEvent);
 
     void paintGL();
-//    void initializeGL();
     void paintEvent(QPaintEvent* event);
 
 };

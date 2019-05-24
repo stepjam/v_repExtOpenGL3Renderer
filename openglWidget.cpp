@@ -34,8 +34,8 @@ void COpenglWidget::paintEvent(QPaintEvent* event)
 
 void COpenglWidget::resizeEvent(QResizeEvent* rEvent)
 {
-    _resX=rEvent->size().width();
-    _resY=rEvent->size().height();
+    _resX=rEvent->size().width() * devicePixelRatio();
+    _resY=rEvent->size().height() * devicePixelRatio();
 }
 
 void COpenglWidget::paintGL()
