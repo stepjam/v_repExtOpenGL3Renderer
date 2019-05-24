@@ -110,12 +110,12 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
      vrepLib=loadVrepLibrary(temp.c_str());
      if (vrepLib==NULL)
      {
-         std::cout << "Error, could not find or correctly load the V-REP library. Cannot start 'ExternalRenderer' plugin.\n";
+         std::cout << "Error, could not find or correctly load the V-REP library. Cannot start 'OpenGL3Renderer' plugin.\n";
          return(0); // Means error, V-REP will unload this plugin
      }
      if (getVrepProcAddresses(vrepLib)==0)
      {
-         std::cout << "Error, could not find all required functions in the V-REP library. Cannot start 'ExternalRenderer' plugin.\n";
+         std::cout << "Error, could not find all required functions in the V-REP library. Cannot start 'OpenGL3Renderer' plugin.\n";
          unloadVrepLibrary(vrepLib);
          return(0); // Means error, V-REP will unload this plugin
      }
@@ -127,7 +127,7 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
      simGetIntegerParameter(sim_intparam_program_version,&vrepVer);
      if (vrepVer<30201) // if V-REP version is smaller than 3.02.01
      {
-         std::cout << "Sorry, your V-REP copy is somewhat old. Cannot start 'ExternalRenderer' plugin.\n";
+         std::cout << "Sorry, your V-REP copy is somewhat old. Cannot start 'OpenGL3Renderer' plugin.\n";
          unloadVrepLibrary(vrepLib);
          return(0); // Means error, V-REP will unload this plugin
      }
@@ -214,6 +214,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
                 glFormat.setSampleBuffers( true );
 
                 oglWidget=new COpenglWidget(visionSensorOrCameraId, glFormat);
+                oglWidget->show();
                 oglWidgets.push_back(oglWidget);
 
                 oglWidget->makeContextCurrent();
@@ -514,12 +515,12 @@ void executeRenderCommands(bool windowed,int message,void* data)
     }
 }
 
-VREP_DLLEXPORT void v_repExtRenderer(int message,void* data)
+VREP_DLLEXPORT void v_repOpenGL3Renderer(int message,void* data)
 {
     executeRenderCommands(false,message,data);
 }
 
-VREP_DLLEXPORT void v_repExtRendererWindowed(int message,void* data)
+VREP_DLLEXPORT void v_repOpenGL3RendererWindowed(int message,void* data)
 {
     executeRenderCommands(true,message,data);
 }
