@@ -443,6 +443,10 @@ void executeRenderCommands(bool windowed,int message,void* data)
         activeBase->clearViewport();
         activeBase->m_shader->bind();
 
+#ifdef _WIN32
+        static PFNGLACTIVETEXTUREPROC glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
+#endif
+
         // Bind all the lighting textures
         for (int i=0;i<int(lightsToRender.size());i++)
         {
