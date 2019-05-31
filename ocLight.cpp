@@ -198,6 +198,7 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
     f->glClear(GL_DEPTH_BUFFER_BIT);
 
     if (lightType == sim_light_omnidirectional_subtype) {
+        f->glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
         depthShader->setUniformValue(
                     depthShader->uniformLocation("lightPos"), lightPos);
         depthShader->setUniformValue(
@@ -216,6 +217,7 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
             }
         }
     } else {
+        f->glBindTexture(GL_TEXTURE_2D, depthMap);
         depthShader->setUniformValue(
                     depthShader->uniformLocation("lightSpaceMatrix"), lightSpaceMat);
         // render depth of scene to texture (from light's perspective)

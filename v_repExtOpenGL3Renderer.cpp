@@ -17,6 +17,8 @@
     #define _stricmp(x,y) strcasecmp(x,y)
 #endif
 
+#define MAX_LIGHTS 5
+
 LIBRARY vrepLib;
 
 int resolutionX;
@@ -432,6 +434,37 @@ void executeRenderCommands(bool windowed,int message,void* data)
         bool readRgb=((bool*)valPtr[2])[0];
         bool readDepth=((bool*)valPtr[3])[0];
 
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, activeBase->blankTexture);
+
+        // Bind all of the Sampler2D and SampleCubes to an empty texture.
+        int totalCount = activeDirLightCounter + activePointLightCounter + activeSpotLightCounter;
+        for (int i = 0; i < MAX_LIGHTS i++){
+            QString depthCubeMaps = "depthCubeMap";
+            depthCubeMaps.append(QString::number(i));
+            activeBase->m_shader->setUniformValue(
+                        activeBase->m_shader->uniformLocation(depthCubeMaps), 1);
+        }
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, activeBase->blankTexture2);
+
+        for (int i = 0; i < MAX_LIGHTS; i++){
+            QString lightName = "spotLight";
+            lightName.append(QString::number(i));
+            lightName.append(".shadowMap");
+            activeBase->m_shader->setUniformValue(
+                        activeBase->m_shader->uniformLocation(lightName), 2);
+        }
+
+        for (int i = 0; i < MAX_LIGHTS; i++){
+            QString lightName = "dirLight";
+            lightName.append(QString::number(i));
+            lightName.append(".shadowMap");
+            activeBase->m_shader->setUniformValue(
+                        activeBase->m_shader->uniformLocation(lightName), 2);
+        }
+
         for (int i=0;i<int(lightsToRender.size());i++)
         {
             QOpenGLShaderProgram* depthSh = activeBase->depthShader;
@@ -440,6 +473,8 @@ void executeRenderCommands(bool windowed,int message,void* data)
             lightsToRender[i]->renderDepthFromLight(depthSh, &meshesToRender);
         }
 
+        activeBase->makeContextCurrent();
+        activeBase->bindFramebuffer();
         activeBase->clearViewport();
         activeBase->m_shader->bind();
 
@@ -447,17 +482,43 @@ void executeRenderCommands(bool windowed,int message,void* data)
         static PFNGLACTIVETEXTUREPROC glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
 #endif
 
+        // It seems Sampler2Ds and SamplerCubes cant match to the same ID
+        int omnis_seen = 0;
+        int spots_seen = 0;
+        int dir_seen = 0;
+
         // Bind all the lighting textures
         for (int i=0;i<int(lightsToRender.size());i++)
         {
-            glActiveTexture(GL_TEXTURE1 + i);
+            glActiveTexture(GL_TEXTURE3 + i);
             if (lightsToRender[i]->lightType == sim_light_omnidirectional_subtype){
                 glBindTexture(GL_TEXTURE_CUBE_MAP, lightsToRender[i]->depthMap);
-            }else
+                QString depthCubeMaps = "depthCubeMap";
+                depthCubeMaps.append(QString::number(omnis_seen));
+                activeBase->m_shader->setUniformValue(
+                            activeBase->m_shader->uniformLocation(depthCubeMaps), 3+i);
+                omnis_seen += 1;
+            }else{
                 glBindTexture(GL_TEXTURE_2D, lightsToRender[i]->depthMap);
+                if(lightsToRender[i]->lightType == sim_light_spot_subtype){
+                    QString lightName = "spotLight";
+                    lightName.append(QString::number(spots_seen));
+                    lightName.append(".shadowMap");
+                    activeBase->m_shader->setUniformValue(
+                                activeBase->m_shader->uniformLocation(lightName), 3+i);
+                    spots_seen += 1;
+                }else if (lightsToRender[i]->lightType == sim_light_directional_subtype) {
+                    QString lightName = "dirLight";
+                    lightName.append(QString::number(dir_seen));
+                    lightName.append(".shadowMap");
+                    activeBase->m_shader->setUniformValue(
+                                activeBase->m_shader->uniformLocation(lightName), 3+i);
+                    dir_seen += 1;
+                }
+            }
         }
+        glActiveTexture(GL_TEXTURE0);
 
-        activeBase->bindFramebuffer(); // Only has an effect on offscreen rendering
         for (size_t i=0;i<meshesToRender.size();i++)
         {
             meshesToRender[i]->render(activeBase->m_shader);

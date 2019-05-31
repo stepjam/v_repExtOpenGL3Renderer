@@ -156,10 +156,11 @@ void COcMesh::render(QOpenGLShaderProgram* m_shader)
     }
     else
     {
-        f->glBindTexture(GL_TEXTURE_2D,blankTexture);
+        f->glBindTexture(GL_TEXTURE_2D, blankTexture);
         GLubyte texData[] = { 255, 255, 255, 255 };
         f->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData);
     }
+    m_shader->setUniformValue(m_shader->uniformLocation("texture0"), 0);
 
     m_shader->bind();
 

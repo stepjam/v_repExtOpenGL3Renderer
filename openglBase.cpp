@@ -18,6 +18,8 @@ COpenglBase::~COpenglBase()
     delete m_shader;
     delete depthShader;
     delete omniDepthShader;
+    glDeleteTextures(1, &blankTexture);
+    glDeleteTextures(1, &blankTexture2);
 }
 
 int COpenglBase::getAssociatedObjectHandle()
@@ -55,6 +57,9 @@ void COpenglBase::initGL()
 
     if ( !prepareShaderProgram(omniDepthShader, ":/shadows/omni_depth.vert", ":/shadows/omni_depth.frag", ""))
         return;
+
+    f->glGenTextures(1,&blankTexture);
+    f->glGenTextures(1,&blankTexture2);
 }
 
 bool COpenglBase::prepareShaderProgram(QOpenGLShaderProgram* sh, const QString& vertexShaderPath, const QString& fragmentShaderPath, const QString& geomShaderPath)

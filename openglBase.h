@@ -29,6 +29,9 @@ public:
     COcContainer<COcMesh>* meshContainer;
     COcContainer<COcTexture>* textureContainer;
 
+    unsigned int blankTexture, blankTexture2;
+
+
 protected:
     int _associatedObjectHandle;
     int _resX;
