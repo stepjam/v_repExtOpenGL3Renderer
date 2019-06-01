@@ -439,7 +439,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
 
         // Bind all of the Sampler2D and SampleCubes to an empty texture.
         int totalCount = activeDirLightCounter + activePointLightCounter + activeSpotLightCounter;
-        for (int i = 0; i < MAX_LIGHTS i++){
+        for (int i = 0; i < MAX_LIGHTS; i++){
             QString depthCubeMaps = "depthCubeMap";
             depthCubeMaps.append(QString::number(i));
             activeBase->m_shader->setUniformValue(

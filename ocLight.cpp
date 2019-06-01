@@ -101,7 +101,7 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
         lightName.append("dirLight");
         lightName.append(QString::number(counter));
         camShader->setUniformValue(camShader->uniformLocation("dirLightLen"), counter+1);
-        lightProjection.ortho(-2.0f, 2.0f, -2.0f, 2.0f, near_plane, far_plane);
+        lightProjection.ortho(-4.0f, 4.0f, -4.0f, 4.0f, near_plane, far_plane);
     } else if (lightType == sim_light_omnidirectional_subtype) {
         lightName.append("pointLight");
         lightName.append(QString::number(counter));
