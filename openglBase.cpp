@@ -18,8 +18,6 @@ COpenglBase::~COpenglBase()
     delete m_shader;
     delete depthShader;
     delete omniDepthShader;
-    glDeleteTextures(1, &blankTexture);
-    glDeleteTextures(1, &blankTexture2);
 }
 
 int COpenglBase::getAssociatedObjectHandle()
