@@ -331,6 +331,37 @@ void executeRenderCommands(bool windowed,int message,void* data)
         float FadeXDistance=((float*)valPtr[10])[0]; // Pov-ray
         bool lightIsVisible=((bool*)valPtr[11])[0];
         bool noShadow=((bool*)valPtr[12])[0]; // Pov-ray
+        int lightHandle=((int*)valPtr[13])[0];
+
+        float nearPlane=0.1f;
+        float farPlane=10.0f;
+        float orthoSize=8.0f;
+        int shadowTextureSize=2048;
+
+        char* str=simGetExtensionString(lightHandle,-1,"nearPlane@lightProjection@openGL3");
+        if (str!=nullptr)
+        {
+            nearPlane=strtof(str,nullptr);
+            simReleaseBuffer(str);
+        }
+        str=simGetExtensionString(lightHandle,-1,"farPlane@lightProjection@openGL3");
+        if (str!=nullptr)
+        {
+            farPlane=strtof(str,nullptr);
+            simReleaseBuffer(str);
+        }
+        str=simGetExtensionString(lightHandle,-1,"orthoSize@lightProjection@openGL3");
+        if (str!=nullptr)
+        {
+            orthoSize=strtof(str,nullptr);
+            simReleaseBuffer(str);
+        }
+        str=simGetExtensionString(lightHandle,-1,"shadowTextureSize@lightProjection@openGL3");
+        if (str!=nullptr)
+        {
+            shadowTextureSize=atoll(str);
+            simReleaseBuffer(str);
+        }
 
         if (_simulationRunning||(!windowed))
         { // Now set-up that light in OpenGl:
@@ -353,7 +384,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
                 activeSpotLightCounter++;
             }
             int totalCount = activeDirLightCounter + activePointLightCounter + activeSpotLightCounter;
-            COcLight* light = new COcLight(lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, activeBase->m_shader);
+            COcLight* light = new COcLight(lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize, activeBase->m_shader);
             lightsToRender.push_back(light);
         }
     }
@@ -434,6 +465,9 @@ void executeRenderCommands(bool windowed,int message,void* data)
         bool readRgb=((bool*)valPtr[2])[0];
         bool readDepth=((bool*)valPtr[3])[0];
 
+#ifdef _WIN32
+        static PFNGLACTIVETEXTUREPROC glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
+#endif
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, activeBase->blankTexture);
 
@@ -470,6 +504,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
             QOpenGLShaderProgram* depthSh = activeBase->depthShader;
             if (lightsToRender[i]->lightType == sim_light_omnidirectional_subtype)
                 depthSh = activeBase->omniDepthShader;
+
             lightsToRender[i]->renderDepthFromLight(depthSh, &meshesToRender);
         }
 
@@ -477,10 +512,6 @@ void executeRenderCommands(bool windowed,int message,void* data)
         activeBase->bindFramebuffer();
         activeBase->clearViewport();
         activeBase->m_shader->bind();
-
-#ifdef _WIN32
-        static PFNGLACTIVETEXTUREPROC glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
-#endif
 
         // It seems Sampler2Ds and SamplerCubes cant match to the same ID
         int omnis_seen = 0;

@@ -5,7 +5,7 @@
 
 #define TEXTURE_INIT_USED_COUNT 10
 
-COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, QOpenGLShaderProgram* camShader)
+COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize,QOpenGLShaderProgram* camShader)
 {
     this->lightType = lightType;
 
@@ -20,7 +20,7 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
         f->glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         for (unsigned int i = 0; i < 6; ++i)
         {
-            f->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            f->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, shadowTextureSize, shadowTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
             f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, depthMap, 0);
         }
         f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -30,7 +30,7 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
         f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     } else {
         f->glBindTexture(GL_TEXTURE_2D, depthMap);
-        f->glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        f->glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowTextureSize, shadowTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -88,11 +88,10 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
                 m4_[0][3], m4_[1][3], m4_[2][3], m4_[3][3]);
 
 
-
-    float near_plane = 0.10f, far_plane = 10.0f;
+    shadowTexSize=shadowTextureSize;
     this->farPlane = far_plane;
 
-    float aspect = (float)SHADOW_WIDTH/(float)SHADOW_HEIGHT;
+    float aspect = 1.0f;
     QMatrix4x4 lightProjection;
     lightProjection.setToIdentity();
 
@@ -101,7 +100,7 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
         lightName.append("dirLight");
         lightName.append(QString::number(counter));
         camShader->setUniformValue(camShader->uniformLocation("dirLightLen"), counter+1);
-        lightProjection.ortho(-4.0f, 4.0f, -4.0f, 4.0f, near_plane, far_plane);
+        lightProjection.ortho(-orthoWidth*0.5f, orthoWidth*0.5f, -orthoWidth*0.5f, orthoWidth*0.5f, near_plane, far_plane);
     } else if (lightType == sim_light_omnidirectional_subtype) {
         lightName.append("pointLight");
         lightName.append(QString::number(counter));
@@ -112,7 +111,7 @@ COcLight::COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, flo
 
         QString farplane = ".farPlane";
         farplane.prepend(lightName);
-        camShader->setUniformValue(camShader->uniformLocation(farplane), far_plane);
+        camShader->setUniformValue(camShader->uniformLocation(farplane), farPlane);
 
         for(int i=0; i < 6; i++)
             lightSpaceMats[i].setToIdentity();
@@ -193,7 +192,7 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
 
     depthShader->bind();
 
-    f->glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    f->glViewport(0, 0, shadowTexSize, shadowTexSize);
     f->glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     f->glClear(GL_DEPTH_BUFFER_BIT);
 

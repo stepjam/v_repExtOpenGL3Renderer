@@ -10,17 +10,17 @@
 class COcLight
 {
 public:
-     COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, QOpenGLShaderProgram* camShader);
+     COcLight(int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, QOpenGLShaderProgram* camShader);
     ~COcLight();
      void renderDepthFromLight(QOpenGLShaderProgram* depthSh, std::vector<COcMesh*>* meshesToRender);
      unsigned int depthMapFBO;
      unsigned int depthMap;
      int lightType;
 private:
-     const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
      QVector3D lightPos;
      QMatrix4x4 lightSpaceMat;
      QMatrix4x4 lightSpaceMats[6];
      float farPlane;
+     float shadowTexSize;
 };
 #endif // OCLIGHT_H
