@@ -35,30 +35,32 @@ void COpenglBase::bindFramebuffer()
 
 void COpenglBase::initGL()
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
-    f->glClearColor(0.0f,0.0f,0.0f,1.0f);
-    f->glEnable(GL_DEPTH_TEST);
-    f->glEnable(GL_BLEND);
-    f->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    initializeOpenGLFunctions();
+
+    glClearColor(0.0f,0.0f,0.0f,1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Prepare a complete shader program…
     if ( !prepareShaderProgram(m_shader, ":/default.vert", ":/default.frag", "") )
         return;
 
-    f->glGenTextures(1,&blankTexture);
-    f->glGenTextures(1,&blankTexture2);
+    glGenTextures(1,&blankTexture);
+    glGenTextures(1,&blankTexture2);
 }
 
 void COpenglBase::clearBuffers(float viewAngle,float orthoViewSize,float nearClippingPlane,float farClippingPlane,bool perspectiveOperation,const float* backColor)
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
     m_shader->bind();
-    f->glViewport(0,0,_resX,_resY);
-    f->glClearColor(backColor[0],backColor[1],backColor[2],0.0f);
-    f->glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    f->glEnable(GL_DEPTH_TEST);
+    glViewport(0,0,_resX,_resY);
+    glClearColor(backColor[0],backColor[1],backColor[2],0.0f);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
     QMatrix4x4 m_proj;
     m_proj.setToIdentity();
@@ -87,7 +89,7 @@ void COpenglBase::clearBuffers(float viewAngle,float orthoViewSize,float nearCli
 
 void COpenglBase::clearViewport()
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-    f->glViewport(0,0,_resX,_resY);
-    f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    glViewport(0,0,_resX,_resY);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

@@ -69,15 +69,14 @@ void simulationGuiPass()
 {
     if (!_simulationRunning && !_cleanedUp){
         // Windowed views can only run while simulation is running
-        for (size_t i=0;i<oglWidgets.size();i++){
-            delete oglWidgets[i];
-        }
-        oglWidgets.clear();
         delete lightShaders;
         lightShaders = NULL;
         delete lightContainer;
         lightContainer = NULL;
-
+        for (size_t i=0;i<oglWidgets.size();i++){
+            delete oglWidgets[i];
+        }
+        oglWidgets.clear();
         _cleanedUp = true;
     }
 }
@@ -438,6 +437,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
                     // A light has been deleted...
                     // Means we need to rebuild all lights for this render. Just invalidate the rest of the lights...
                     lightContainer->removeAllFromIndex(i);
+                    activeBase->makeContextCurrent();
                     light = new COcLight(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize);
                     lightContainer->add(light);
                 }
@@ -676,7 +676,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
                     }
                 }
                 oglOffscreen->doneCurrentContext();
-//                oglOffscreen->unbindFramebuffer();
+                oglOffscreen->unbindFramebuffer();
             }
         }
 

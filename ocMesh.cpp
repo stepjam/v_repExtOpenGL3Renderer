@@ -10,6 +10,7 @@ unsigned int blankTexture;
 
 COcMesh::COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int normL,float* tex,int texL,unsigned char* ed)
 {
+    initializeOpenGLFunctions();
     for (int i=0;i<indL;i++)
     {
         Vertex vertex;
@@ -33,8 +34,8 @@ COcMesh::COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int 
     setupMesh();
 
     // create a white texture if there is no texture
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-    f->glGenTextures(1,&blankTexture);
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    glGenTextures(1,&blankTexture);
 }
 
 COcMesh::~COcMesh()
@@ -48,31 +49,31 @@ COcMesh::~COcMesh()
 
 void COcMesh::setupMesh()
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     // create buffers/arrays
-    f->glGenVertexArrays(1, &VAO);
-    f->glGenBuffers(1, &VBO);
-    f->glGenBuffers(1, &EBO);
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
-    f->glBindVertexArray(VAO);
+    glBindVertexArray(VAO);
     // load data into vertex buffers
-    f->glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    f->glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
-    f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    f->glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
     // set the vertex attribute pointers
     // vertex Positions
-    f->glEnableVertexAttribArray(0);
-    f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     // vertex normals
-    f->glEnableVertexAttribArray(1);
-    f->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
     // vertex texture coords
-    f->glEnableVertexAttribArray(2);
-    f->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-    f->glBindVertexArray(0);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+    glBindVertexArray(0);
 }
 
 void COcMesh::decrementUsedCount()
@@ -109,7 +110,7 @@ void COcMesh::store(const C7Vector& tr,float* colors,bool textured,float shading
 
 void COcMesh::renderDepth(QOpenGLShaderProgram* depthShader)
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
     // Set the model matrix
     C4Vector axis=tr.Q.getAngleAndAxisNoChecking();
@@ -119,9 +120,9 @@ void COcMesh::renderDepth(QOpenGLShaderProgram* depthShader)
     mm.rotate(axis(0)*radToDeg,axis(1),axis(2),axis(3));
     depthShader->setUniformValue(depthShader->uniformLocation("model"), mm);
 
-    f->glBindVertexArray(VAO);
-    f->glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-    f->glBindVertexArray(0);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glBindVertexArray(0);
 }
 
 void COcMesh::render(QOpenGLShaderProgram* m_shader)
@@ -129,7 +130,7 @@ void COcMesh::render(QOpenGLShaderProgram* m_shader)
 
     _usedCount=MESH_INIT_USED_COUNT;
 
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
     float shininess = 48.0f;
 
@@ -149,27 +150,27 @@ void COcMesh::render(QOpenGLShaderProgram* m_shader)
     m_shader->setUniformValue(m_shader->uniformLocation("material.specular"), specular);
     m_shader->setUniformValue(m_shader->uniformLocation("material.shininess"), shininess);
 
-    f->glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     if (textured&&(texture!=0))
     {
         texture->startTexture(repeatU,repeatV,interpolateColors,applyMode);
     }
     else
     {
-        f->glBindTexture(GL_TEXTURE_2D, blankTexture);
+        glBindTexture(GL_TEXTURE_2D, blankTexture);
         GLubyte texData[] = { 255, 255, 255, 255 };
-        f->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData);
     }
     m_shader->setUniformValue(m_shader->uniformLocation("texture0"), 0);
 
     m_shader->bind();
 
-    f->glBindVertexArray(VAO);
-    f->glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-    f->glBindVertexArray(0);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glBindVertexArray(0);
 
-    texture->endTexture();
+    glBindTexture(GL_TEXTURE_2D, 0);
 
-    f->glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
 }
 

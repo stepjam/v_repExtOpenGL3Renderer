@@ -7,6 +7,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
+#include <QOpenGLExtraFunctions>
 
 struct Vertex {
     // position
@@ -17,7 +18,7 @@ struct Vertex {
     float TexCoords[2];
 };
 
-class COcMesh
+class COcMesh: protected QOpenGLExtraFunctions
 {
 public:
     COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int normL,float* tex,int texL,unsigned char* ed);

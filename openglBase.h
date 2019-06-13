@@ -8,7 +8,7 @@
 #include "ocTexture.h"
 #include "ocContainer.h"
 
-class COpenglBase
+class COpenglBase: protected QOpenGLExtraFunctions
 {
 public:
     COpenglBase(int associatedObjectHandle);

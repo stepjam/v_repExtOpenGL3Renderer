@@ -2,8 +2,9 @@
 #define OCTEXTURE_H
 
 #include <vector>
+#include <QOpenGLExtraFunctions>
 
-class COcTexture
+class COcTexture: protected QOpenGLExtraFunctions
 {
 public:
      COcTexture(int id,const unsigned char* textureBuff,int textureSizeX,int textureSizeY);

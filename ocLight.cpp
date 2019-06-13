@@ -11,12 +11,16 @@ COcLight::COcLight(int handle, int lightType, C4X4Matrix m, int counter, int tot
     this->shadowTexSize=shadowTextureSize;
     this->farPlane = far_plane;
 
+    std::cout << "COcLight prepareDepthMapFBO " << std::endl;
+
+    initializeOpenGLFunctions();
+
     prepareDepthMapFBO(lightType, shadowTextureSize);
 }
 
 void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, QOpenGLShaderProgram* camShader)
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
     lightName = "";
     QString direction = ".direction";
@@ -109,39 +113,42 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
 }
 
 void COcLight::prepareDepthMapFBO(int lightType, int shadowTextureSize){
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
-    f->glGenFramebuffers(1, &depthMapFBO);
-    f->glGenTextures(1, &depthMap);
+    std::cout << "COcLight prepareDepthMapFBO 2" << std::endl;
+    glGenFramebuffers(1, &depthMapFBO);
+    std::cout << "COcLight prepareDepthMapFBO 3" << std::endl;
+    glGenTextures(1, &depthMap);
+    std::cout << "COcLight prepareDepthMapFBO 4" << std::endl;
     if(lightType == sim_light_omnidirectional_subtype){
         // We treat the depthMap as a cube map.
-        f->glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
-        f->glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         for (unsigned int i = 0; i < 6; ++i)
         {
-            f->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, shadowTextureSize, shadowTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-            f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, depthMap, 0);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, shadowTextureSize, shadowTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, depthMap, 0);
         }
-        f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        f->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     } else {
-        f->glBindTexture(GL_TEXTURE_2D, depthMap);
-        f->glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowTextureSize, shadowTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowTextureSize, shadowTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-        f->glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-        f->glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
     }
     glDrawBuffer(GL_NONE);
-    f->glReadBuffer(GL_NONE);
-    f->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void COcLight::setPose(int lightType, C4X4Matrix m, QOpenGLShaderProgram* camShader){
@@ -203,6 +210,7 @@ void COcLight::setPose(int lightType, C4X4Matrix m, QOpenGLShaderProgram* camSha
 COcLight::~COcLight()
 {
 //    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+
     glDeleteFramebuffers(1, &depthMapFBO);
     glDeleteTextures(1, &depthMap);
 }
@@ -210,16 +218,16 @@ COcLight::~COcLight()
 void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vector<COcMesh*>* meshesToRender)
 {
     _usedCount = LIGHT_INIT_USED_COUNT;
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
     depthShader->bind();
 
-    f->glViewport(0, 0, shadowTexSize, shadowTexSize);
-    f->glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    f->glClear(GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, shadowTexSize, shadowTexSize);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
     if (lightType == sim_light_omnidirectional_subtype) {
-        f->glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
         depthShader->setUniformValue(
                     depthShader->uniformLocation("lightPos"), lightPos);
         depthShader->setUniformValue(
@@ -229,8 +237,8 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
                         depthShader->uniformLocation("lightSpaceMatrix"), lightSpaceMats[i]);
 
             GLenum face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-            f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, face, depthMap, 0);
-            f->glClear(GL_DEPTH_BUFFER_BIT);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, face, depthMap, 0);
+            glClear(GL_DEPTH_BUFFER_BIT);
             // render depth of scene to texture (from light's perspective)
             for (size_t i=0;i<meshesToRender->size();i++)
             {
@@ -238,7 +246,7 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
             }
         }
     } else {
-        f->glBindTexture(GL_TEXTURE_2D, depthMap);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
         depthShader->setUniformValue(
                     depthShader->uniformLocation("lightSpaceMatrix"), lightSpaceMat);
         // render depth of scene to texture (from light's perspective)
@@ -247,7 +255,7 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
             (*meshesToRender)[i]->renderDepth(depthShader);
         }
     }
-    f->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void COcLight::decrementUsedCount()

@@ -17,9 +17,9 @@ COffscreenGlContext::COffscreenGlContext(int resX,int resY, QOpenGLContext* qCon
 
     if (_qOffscreenSurface->isValid())
     {
-        _qContext=new QOpenGLContext();
-        _qContext->setShareContext(qCont);
-        _qContext->create();
+        _qContext= qCont;// new QOpenGLContext();
+//        _qContext->setShareContext(qCont);
+//        _qContext->create();
     }
 
     makeCurrent();
