@@ -39,7 +39,7 @@ int visionSensorOrCameraId;
 int activeDirLightCounter, activePointLightCounter, activeSpotLightCounter;
 
 bool _simulationRunning=false;
-bool _cleanedUp=true;
+bool _cleanUp=false;
 
 std::vector<COpenglWidget*> oglWidgets;
 std::vector<COpenglOffscreen*> oglOffscreens;
@@ -55,19 +55,19 @@ std::vector<COcMesh*> meshesToRender;
 void simulationAboutToStart()
 {
     _simulationRunning=true;
-    _cleanedUp = false;
+    _cleanUp = false;
 }
 
 void simulationEnded()
 {
     // This is called from the Sim thread, and so we will have to cleanup later when the UI thread comes through.
     _simulationRunning=false;
-    _cleanedUp = false;
+    _cleanUp = true;
 }
 
 void simulationGuiPass()
 {
-    if (!_simulationRunning && !_cleanedUp){
+    if (_cleanUp){
         // Windowed views can only run while simulation is running
         delete lightShaders;
         lightShaders = NULL;
@@ -80,7 +80,7 @@ void simulationGuiPass()
             delete oglOffscreens[i];
         oglOffscreens.clear();
         oglWidgets.clear();
-        _cleanedUp = true;
+        _cleanUp = false;
     }
 }
 
@@ -110,6 +110,8 @@ void removeOffscreen(int objectHandle)
     {
         if (oglOffscreens[i]->getAssociatedObjectHandle()==objectHandle)
         {
+            delete lightContainer;
+            lightContainer = new COcContainer<COcLight>();;
             delete oglOffscreens[i];
             oglOffscreens.erase(oglOffscreens.begin()+i);
             return;
@@ -184,7 +186,8 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
 
 VREP_DLLEXPORT void v_repEnd()
 { // This is called just once, at the end of V-REP
-
+    for (size_t i=0;i<oglOffscreens.size();i++)
+        delete oglOffscreens[i];
     if (_qContext != NULL)
         delete _qContext;
     _qContext = NULL;
