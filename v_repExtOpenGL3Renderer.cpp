@@ -380,7 +380,8 @@ void executeRenderCommands(bool windowed,int message,void* data)
         float nearPlane=0.01f;
         float farPlane=10.0f;
         float orthoSize=8.0f;
-        int shadowTextureSize=2048;
+        // Have the shadow map scale based on the render resolution.
+        int shadowTextureSize=std::max(activeBase->_resX,activeBase->_resY) * 4;
 
         char* str=simGetExtensionString(lightHandle,-1,"nearPlane@lightProjection@openGL3");
         if (str!=nullptr)

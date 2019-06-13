@@ -29,12 +29,7 @@ COcContainer<T>::COcContainer()
 template <class T>
 COcContainer<T>::~COcContainer()
 {
-//    for (int i=0;i<int(objects.size());i++)
-//    {
-//        std::cout << "erasing :" << i << std::endl;
-//        objects.erase(objects.begin()+i);
-//        i--; // reprocess this position
-//    }
+
     for (int i=0;i<int(objects.size());i++){
         delete objects[i];
     }

@@ -292,11 +292,9 @@ float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMa
     // calculate bias (based on depth map resolution and slope)
     vec3 normal = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
-//    float bias = max(0.0005 * (1.0 - dot(normal, lightDir)), 0.0001);
-    float bias = max(spotType ? 0.0005 : 0.02 * (1.0 - dot(normal, lightDir)), spotType ? 0.0001 : 0.005);
+    float bias = max((spotType ? 0.0005 : 0.016) * (1.0 - dot(normal, lightDir)), spotType ? 0.0001 : 0.0001);
 
     // check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
     // PCF
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
@@ -329,7 +327,7 @@ float PointShadowCalculation(vec3 lightPos, samplerCube cubeMap, float farPlane)
     // Bias calc
     vec3 normal = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
-    float bias = max(0.02 * (1.0 - dot(normal, lightDir)), 0.001);
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.001);
 
     int samples = 20;
     float viewDistance = length(viewPos - FragPos);
