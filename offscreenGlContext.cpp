@@ -14,14 +14,16 @@ COffscreenGlContext::COffscreenGlContext(int resX,int resY, QOpenGLContext* qCon
     f.setDepthBufferSize(24);
     _qOffscreenSurface->setFormat(f);
     _qOffscreenSurface->create();
+    _qContext = qCont;
 
+#ifdef __APPLE__
     if (_qOffscreenSurface->isValid())
     {
-        _qContext= qCont;// new QOpenGLContext();
-//        _qContext->setShareContext(qCont);
-//        _qContext->create();
+        _qContext= new QOpenGLContext();
+        _qContext->setShareContext(qCont);
+        _qContext->create();
     }
-
+#endif
     makeCurrent();
 }
 
@@ -29,7 +31,9 @@ COffscreenGlContext::~COffscreenGlContext()
 {
     _qOffscreenSurface->destroy();
     delete _qOffscreenSurface;
+#ifdef __APPLE__
     delete _qContext;
+#endif
 }
 
 bool COffscreenGlContext::makeCurrent()

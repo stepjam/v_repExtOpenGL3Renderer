@@ -32,7 +32,6 @@ void COpenglWidget::doneCurrentContext()
 
 void COpenglWidget::paintEvent(QPaintEvent* event)
 {
-//    QOpenGLWidget::paintEvent(event);
 }
 
 void COpenglWidget::resizeEvent(QResizeEvent* rEvent)

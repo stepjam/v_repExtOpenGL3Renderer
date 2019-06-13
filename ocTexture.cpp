@@ -18,7 +18,6 @@ COcTexture::COcTexture(int id,const unsigned char* textureBuff,int textureSizeX,
 
 COcTexture::~COcTexture()
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     glDeleteTextures(1,&_textureName);
 }
 
@@ -39,8 +38,6 @@ int COcTexture::getId()
 
 void COcTexture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,int applyMode)
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-
     _usedCount=TEXTURE_INIT_USED_COUNT;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D,_textureName);
@@ -66,7 +63,6 @@ void COcTexture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,i
 
 void COcTexture::endTexture()
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-//    glBindTexture(GL_TEXTURE_2D, 0);
+
 }
 

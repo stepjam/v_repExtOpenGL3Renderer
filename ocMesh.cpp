@@ -1,7 +1,6 @@
 #include "ocMesh.h"
 #include <qopengl.h>
 #include <iostream>
-
 #include <QOpenGLExtraFunctions>
 
 #define MESH_INIT_USED_COUNT 10
@@ -34,13 +33,11 @@ COcMesh::COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int 
     setupMesh();
 
     // create a white texture if there is no texture
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     glGenTextures(1,&blankTexture);
 }
 
 COcMesh::~COcMesh()
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     glDeleteTextures(1, &blankTexture);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
@@ -49,7 +46,6 @@ COcMesh::~COcMesh()
 
 void COcMesh::setupMesh()
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     // create buffers/arrays
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -110,8 +106,6 @@ void COcMesh::store(const C7Vector& tr,float* colors,bool textured,float shading
 
 void COcMesh::renderDepth(QOpenGLShaderProgram* depthShader)
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-
     // Set the model matrix
     C4Vector axis=tr.Q.getAngleAndAxisNoChecking();
     QMatrix4x4 mm;
@@ -127,10 +121,7 @@ void COcMesh::renderDepth(QOpenGLShaderProgram* depthShader)
 
 void COcMesh::render(QOpenGLShaderProgram* m_shader)
 {
-
     _usedCount=MESH_INIT_USED_COUNT;
-
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
     float shininess = 48.0f;
 

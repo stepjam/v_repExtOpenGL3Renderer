@@ -10,9 +10,6 @@ COcLight::COcLight(int handle, int lightType, C4X4Matrix m, int counter, int tot
     this->lightType = lightType;
     this->shadowTexSize=shadowTextureSize;
     this->farPlane = far_plane;
-
-    std::cout << "COcLight prepareDepthMapFBO " << std::endl;
-
     initializeOpenGLFunctions();
 
     prepareDepthMapFBO(lightType, shadowTextureSize);
@@ -20,8 +17,6 @@ COcLight::COcLight(int handle, int lightType, C4X4Matrix m, int counter, int tot
 
 void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, QOpenGLShaderProgram* camShader)
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-
     lightName = "";
     QString direction = ".direction";
     QString position = ".position";
@@ -113,13 +108,9 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
 }
 
 void COcLight::prepareDepthMapFBO(int lightType, int shadowTextureSize){
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
-    std::cout << "COcLight prepareDepthMapFBO 2" << std::endl;
     glGenFramebuffers(1, &depthMapFBO);
-    std::cout << "COcLight prepareDepthMapFBO 3" << std::endl;
     glGenTextures(1, &depthMap);
-    std::cout << "COcLight prepareDepthMapFBO 4" << std::endl;
     if(lightType == sim_light_omnidirectional_subtype){
         // We treat the depthMap as a cube map.
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
@@ -209,8 +200,6 @@ void COcLight::setPose(int lightType, C4X4Matrix m, QOpenGLShaderProgram* camSha
 
 COcLight::~COcLight()
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-
     glDeleteFramebuffers(1, &depthMapFBO);
     glDeleteTextures(1, &depthMap);
 }
@@ -218,7 +207,6 @@ COcLight::~COcLight()
 void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vector<COcMesh*>* meshesToRender)
 {
     _usedCount = LIGHT_INIT_USED_COUNT;
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
     depthShader->bind();
 

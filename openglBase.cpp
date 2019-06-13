@@ -35,8 +35,6 @@ void COpenglBase::bindFramebuffer()
 
 void COpenglBase::initGL()
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-
     initializeOpenGLFunctions();
 
     glClearColor(0.0f,0.0f,0.0f,1.0f);
@@ -54,8 +52,6 @@ void COpenglBase::initGL()
 
 void COpenglBase::clearBuffers(float viewAngle,float orthoViewSize,float nearClippingPlane,float farClippingPlane,bool perspectiveOperation,const float* backColor)
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-
     m_shader->bind();
     glViewport(0,0,_resX,_resY);
     glClearColor(backColor[0],backColor[1],backColor[2],0.0f);
@@ -89,7 +85,6 @@ void COpenglBase::clearBuffers(float viewAngle,float orthoViewSize,float nearCli
 
 void COpenglBase::clearViewport()
 {
-//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     glViewport(0,0,_resX,_resY);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
