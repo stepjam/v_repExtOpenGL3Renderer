@@ -76,6 +76,9 @@ void simulationGuiPass()
         for (size_t i=0;i<oglWidgets.size();i++){
             delete oglWidgets[i];
         }
+        for (size_t i=0;i<oglOffscreens.size();i++)
+            delete oglOffscreens[i];
+        oglOffscreens.clear();
         oglWidgets.clear();
         _cleanedUp = true;
     }
@@ -181,11 +184,10 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
 
 VREP_DLLEXPORT void v_repEnd()
 { // This is called just once, at the end of V-REP
-    for (size_t i=0;i<oglOffscreens.size();i++)
-        delete oglOffscreens[i];
-    oglOffscreens.clear();
+
     if (_qContext != NULL)
         delete _qContext;
+    _qContext = NULL;
     unloadVrepLibrary(vrepLib); // release the library
 }
 
