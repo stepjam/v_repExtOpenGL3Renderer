@@ -16,8 +16,10 @@ public:
      void decrementAllUsedCount();
      void removeAllUnused();
      std::vector<T*> objects;
+
+     int getIndex(int id);
+     void removeAllFromIndex(int index);
 };
-#endif // OCCONTAINER_H
 
 template <class T>
 COcContainer<T>::COcContainer()
@@ -27,8 +29,16 @@ COcContainer<T>::COcContainer()
 template <class T>
 COcContainer<T>::~COcContainer()
 {
-    for (int i=0;i<int(objects.size());i++)
+//    for (int i=0;i<int(objects.size());i++)
+//    {
+//        std::cout << "erasing :" << i << std::endl;
+//        objects.erase(objects.begin()+i);
+//        i--; // reprocess this position
+//    }
+    for (int i=0;i<int(objects.size());i++){
         delete objects[i];
+    }
+    objects.clear();
 }
 
 template <class T>
@@ -67,3 +77,26 @@ void COcContainer<T>::add(T* object)
 {
     objects.push_back(object);
 }
+
+template <class T>
+int COcContainer<T>::getIndex(int id)
+{
+    for (int i=0;i<int(objects.size());i++)
+    {
+        if (objects[i]->getId()==id)
+            return(i);
+    }
+    return(0);
+}
+
+template <class T>
+void COcContainer<T>::removeAllFromIndex(int id)
+{
+    for (int i=id;i<int(objects.size());i++)
+    {
+        objects.erase(objects.begin()+i);
+        i--; // reprocess this position
+    }
+}
+
+#endif // OCCONTAINER_H

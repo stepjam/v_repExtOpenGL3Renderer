@@ -1,11 +1,11 @@
 #include "openglOffscreen.h"
 #include <iostream>
 
-COpenglOffscreen::COpenglOffscreen(int associatedObjectHandle,int resX,int resY, const QSurfaceFormat& format) : COpenglBase(associatedObjectHandle)
+COpenglOffscreen::COpenglOffscreen(int associatedObjectHandle,int resX,int resY, QOpenGLContext* qCont) : COpenglBase(associatedObjectHandle)
 {
     _resX=resX;
     _resY=resY;
-    _offscreenContext=new COffscreenGlContext(resX,resY,format);
+    _offscreenContext=new COffscreenGlContext(resX,resY, qCont);
     _frameBufferObject=new CFrameBufferObject(resX,resY);
     _offscreenContext->doneCurrent();
     _offscreenContext->makeCurrent();
@@ -44,6 +44,11 @@ void COpenglOffscreen::doneCurrentContext()
 void COpenglOffscreen::bindFramebuffer()
 {
     _frameBufferObject->switchToFbo();
+}
+
+void COpenglOffscreen::unbindFramebuffer()
+{
+    _frameBufferObject->switchToNonFbo();
 }
 
 

@@ -39,11 +39,11 @@ COcMesh::COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int 
 
 COcMesh::~COcMesh()
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-    f->glDeleteTextures(1, &blankTexture);
-    f->glDeleteBuffers(1, &VBO);
-    f->glDeleteBuffers(1, &EBO);
-    f->glDeleteVertexArrays(1, &VAO);
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    glDeleteTextures(1, &blankTexture);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
 }
 
 void COcMesh::setupMesh()

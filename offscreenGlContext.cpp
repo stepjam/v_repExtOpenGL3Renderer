@@ -1,6 +1,6 @@
 #include "offscreenGlContext.h"
 
-COffscreenGlContext::COffscreenGlContext(int resX,int resY,const QSurfaceFormat& format) : QObject()
+COffscreenGlContext::COffscreenGlContext(int resX,int resY, QOpenGLContext* qCont) : QObject()
 {
     _qOffscreenSurface=new QOffscreenSurface();
     QSurfaceFormat f;
@@ -14,10 +14,11 @@ COffscreenGlContext::COffscreenGlContext(int resX,int resY,const QSurfaceFormat&
     f.setDepthBufferSize(24);
     _qOffscreenSurface->setFormat(f);
     _qOffscreenSurface->create();
+
     if (_qOffscreenSurface->isValid())
     {
         _qContext=new QOpenGLContext();
-        _qContext->setFormat(format);
+        _qContext->setShareContext(qCont);
         _qContext->create();
     }
 
@@ -26,9 +27,9 @@ COffscreenGlContext::COffscreenGlContext(int resX,int resY,const QSurfaceFormat&
 
 COffscreenGlContext::~COffscreenGlContext()
 {
-    delete _qContext;
     _qOffscreenSurface->destroy();
     delete _qOffscreenSurface;
+    delete _qContext;
 }
 
 bool COffscreenGlContext::makeCurrent()

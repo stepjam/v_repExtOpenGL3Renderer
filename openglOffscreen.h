@@ -8,13 +8,14 @@
 class COpenglOffscreen : public COpenglBase
 {
 public:
-    COpenglOffscreen(int associatedObjectHandle,int resX,int resY, const QSurfaceFormat& format);
+    COpenglOffscreen(int associatedObjectHandle,int resX,int resY, QOpenGLContext* qCont);
     ~COpenglOffscreen();
 
     void initGL();
     void makeContextCurrent();
     void doneCurrentContext();
     void bindFramebuffer();
+    void unbindFramebuffer();
     bool isResolutionSame(int resX,int resY);
 
 protected:

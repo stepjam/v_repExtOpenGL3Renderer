@@ -4,12 +4,13 @@
 #include <QOpenGLContext>
 #include <QOffscreenSurface>
 
+
 class COffscreenGlContext : public QObject
 {
     Q_OBJECT
 public:
 
-    COffscreenGlContext(int resX,int resY,const QSurfaceFormat& format);
+    COffscreenGlContext(int resX,int resY, QOpenGLContext* );
     virtual ~COffscreenGlContext();
 
     bool makeCurrent();

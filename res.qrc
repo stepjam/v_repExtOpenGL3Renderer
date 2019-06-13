@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/">
-        <file>simple.vert</file>
-        <file>simple.frag</file>
+        <file>default.vert</file>
+        <file>default.frag</file>
     </qresource>
     <qresource prefix="/shadows">
         <file>depth.frag</file>

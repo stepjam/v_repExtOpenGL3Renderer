@@ -17,8 +17,8 @@ COcTexture::COcTexture(int id,const unsigned char* textureBuff,int textureSizeX,
 
 COcTexture::~COcTexture()
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-    f->glDeleteTextures(1,&_textureName);
+//    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    glDeleteTextures(1,&_textureName);
 }
 
 void COcTexture::decrementUsedCount()

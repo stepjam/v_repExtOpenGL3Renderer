@@ -52,6 +52,8 @@ INCLUDEPATH += "../v_repMath"
 
 SOURCES += \
     ../common/v_repLib.cpp \
+    lightShaders.cpp \
+    utils.cpp \
     v_repExtOpenGL3Renderer.cpp \
     openglWidget.cpp \
     frameBufferObject.cpp \
@@ -72,6 +74,8 @@ SOURCES += \
 
 HEADERS +=\
     ../include/v_repLib.h \
+    lightShaders.h \
+    utils.h \
     v_repExtOpenGL3Renderer.h \
     openglWidget.h \
     frameBufferObject.h \
@@ -102,8 +106,8 @@ unix:!symbian {
 }
 
 DISTFILES += \
-    simple.vert \
-    simple.frag \
+    default.vert \
+    default.frag \
     depth.frag \
     depth.vert \
     omni_depth.vert \

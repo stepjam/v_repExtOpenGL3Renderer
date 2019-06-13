@@ -23,23 +23,22 @@ public:
     virtual void doneCurrentContext();
 
     QOpenGLShaderProgram* m_shader;
-    QOpenGLShaderProgram* depthShader;
-    QOpenGLShaderProgram* omniDepthShader;
+//    QOpenGLShaderProgram* depthShader;
+//    QOpenGLShaderProgram* omniDepthShader;
 
-    COcContainer<COcMesh>* meshContainer;
-    COcContainer<COcTexture>* textureContainer;
+//    COcContainer<COcMesh>* meshContainer;
+//    COcContainer<COcTexture>* textureContainer;
 
     unsigned int blankTexture, blankTexture2;
-
 
 protected:
     int _associatedObjectHandle;
     int _resX;
     int _resY;
-    bool prepareShaderProgram( QOpenGLShaderProgram* sh,
-                               const QString& vertexShaderPath,
-                               const QString& fragmentShaderPath,
-                               const QString& geomShaderPath);
+//    bool prepareShaderProgram( QOpenGLShaderProgram* sh,
+//                               const QString& vertexShaderPath,
+//                               const QString& fragmentShaderPath,
+//                               const QString& geomShaderPath);
 
 };
 #endif // OPENGLBASE_H

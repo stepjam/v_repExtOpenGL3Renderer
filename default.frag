@@ -110,7 +110,7 @@ vec3 gridSamplingDisk[20] = vec3[]
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
-float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMap);
+float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMap, bool spotType);
 float PointShadowCalculation(vec3 lightPos, samplerCube cubeMap, float farPlane);
 
 void main()
@@ -133,19 +133,19 @@ void main()
         // We are not allowed to store the struct in a temp, apparently.
         if (i == 0){
             lresult = CalcDirLight(dirLight0, norm, viewDir);
-            shadow = ShadowCalculation(dirLight0.lightSpaceMatrix, dirLight0.position, dirLight0.shadowMap);
+            shadow = ShadowCalculation(dirLight0.lightSpaceMatrix, dirLight0.position, dirLight0.shadowMap, false);
         } else if (i == 1){
             lresult = CalcDirLight(dirLight1, norm, viewDir);
-            shadow = ShadowCalculation(dirLight1.lightSpaceMatrix, dirLight1.position, dirLight1.shadowMap);
+            shadow = ShadowCalculation(dirLight1.lightSpaceMatrix, dirLight1.position, dirLight1.shadowMap, false);
         } else if (i == 2){
             lresult = CalcDirLight(dirLight2, norm, viewDir);
-            shadow = ShadowCalculation(dirLight2.lightSpaceMatrix, dirLight2.position, dirLight2.shadowMap);
+            shadow = ShadowCalculation(dirLight2.lightSpaceMatrix, dirLight2.position, dirLight2.shadowMap, false);
         } else if (i == 3){
             lresult = CalcDirLight(dirLight3, norm, viewDir);
-            shadow = ShadowCalculation(dirLight3.lightSpaceMatrix, dirLight3.position, dirLight3.shadowMap);
+            shadow = ShadowCalculation(dirLight3.lightSpaceMatrix, dirLight3.position, dirLight3.shadowMap, false);
         } else if (i == 4){
             lresult = CalcDirLight(dirLight4, norm, viewDir);
-            shadow = ShadowCalculation(dirLight4.lightSpaceMatrix, dirLight4.position, dirLight4.shadowMap);
+            shadow = ShadowCalculation(dirLight4.lightSpaceMatrix, dirLight4.position, dirLight4.shadowMap, false);
         }
         result += lresult * (1.0 - shadow);
     }
@@ -182,19 +182,19 @@ void main()
         // We are not allowed to store the struct in a temp, apparently.
         if (i == 0){
             lresult = CalcSpotLight(spotLight0, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight0.lightSpaceMatrix, spotLight0.position, spotLight0.shadowMap);
+            shadow = ShadowCalculation(spotLight0.lightSpaceMatrix, spotLight0.position, spotLight0.shadowMap, true);
         } else if (i == 1){
             lresult = CalcSpotLight(spotLight1, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight1.lightSpaceMatrix, spotLight1.position, spotLight1.shadowMap);
+            shadow = ShadowCalculation(spotLight1.lightSpaceMatrix, spotLight1.position, spotLight1.shadowMap, true);
         } else if (i == 2){
             lresult = CalcSpotLight(spotLight2, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight2.lightSpaceMatrix, spotLight2.position, spotLight2.shadowMap);
+            shadow = ShadowCalculation(spotLight2.lightSpaceMatrix, spotLight2.position, spotLight2.shadowMap, true);
         } else if (i == 3){
             lresult = CalcSpotLight(spotLight3, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight3.lightSpaceMatrix, spotLight3.position, spotLight3.shadowMap);
+            shadow = ShadowCalculation(spotLight3.lightSpaceMatrix, spotLight3.position, spotLight3.shadowMap, true);
         } else if (i == 4){
             lresult = CalcSpotLight(spotLight4, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight4.lightSpaceMatrix, spotLight4.position, spotLight4.shadowMap);
+            shadow = ShadowCalculation(spotLight4.lightSpaceMatrix, spotLight4.position, spotLight4.shadowMap, true);
         }
 
         result += lresult * (1.0 - shadow);
@@ -276,7 +276,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     return (diffuse + specular);
 }
 
-float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMap)
+float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMap, bool spotType)
 {
     vec4 fragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
 
@@ -292,7 +292,9 @@ float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMa
     // calculate bias (based on depth map resolution and slope)
     vec3 normal = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+//    float bias = max(0.0005 * (1.0 - dot(normal, lightDir)), 0.0001);
+    float bias = max(spotType ? 0.0005 : 0.02 * (1.0 - dot(normal, lightDir)), spotType ? 0.0001 : 0.005);
+
     // check whether current frag pos is in shadow
     // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
     // PCF

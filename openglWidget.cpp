@@ -2,9 +2,12 @@
 #include "MyMath.h"
 #include <QResizeEvent>
 #include <iostream>
+#include <QOpenGLFramebufferObject>
 
-COpenglWidget::COpenglWidget(int associatedObjectHandle,const QGLFormat& format, QWidget *parent) : QGLWidget(format ,parent), COpenglBase(associatedObjectHandle)
+COpenglWidget::COpenglWidget(int associatedObjectHandle, QOpenGLContext* qCont, QWindow *parent) : QWindow(parent), COpenglBase(associatedObjectHandle)
 {
+    setSurfaceType(QWindow::OpenGLSurface);
+    this->qCont = qCont;
 }
 
 COpenglWidget::~COpenglWidget()
@@ -19,17 +22,17 @@ void COpenglWidget::initGL()
 
 void COpenglWidget::makeContextCurrent()
 {
-    QGLWidget::makeCurrent();
+    qCont->makeCurrent(this);
 }
 
 void COpenglWidget::doneCurrentContext()
 {
-    QGLWidget::doneCurrent();
+    qCont->doneCurrent();
 }
 
 void COpenglWidget::paintEvent(QPaintEvent* event)
 {
-  QGLWidget::paintEvent(event);
+//    QOpenGLWidget::paintEvent(event);
 }
 
 void COpenglWidget::resizeEvent(QResizeEvent* rEvent)
@@ -61,6 +64,12 @@ void COpenglWidget::getWindowResolution(int& resX,int& resY)
 
 void COpenglWidget::bindFramebuffer()
 {
+    QOpenGLFramebufferObject::bindDefault();
+}
+
+void COpenglWidget::swapBuffers()
+{
+    qCont->swapBuffers(this);
 }
 
 
