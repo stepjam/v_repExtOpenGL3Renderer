@@ -380,6 +380,21 @@ void executeRenderCommands(bool windowed,int message,void* data)
         float nearPlane=0.01f;
         float farPlane=10.0f;
         float orthoSize=8.0f;
+
+        // Default values gained by tuning on a selection of environements.
+        float bias = 0.001f;
+        float normalBias = 0.012f;
+        if (lightType == sim_light_directional_subtype)
+        {
+            normalBias = 0.005f;
+        }
+        else if (lightType == sim_light_spot_subtype)
+        {
+            bias = 0.0f;
+            normalBias = 0.00008f;
+        }
+
+
         // Have the shadow map scale based on the render resolution.
         int shadowTextureSize=std::max(activeBase->_resX,activeBase->_resY) * 4;
 
@@ -407,6 +422,18 @@ void executeRenderCommands(bool windowed,int message,void* data)
             shadowTextureSize=atoll(str);
             simReleaseBuffer(str);
         }
+        str=simGetExtensionString(lightHandle,-1,"bias@lightProjection@openGL3");
+        if (str!=nullptr)
+        {
+            bias=strtof(str,nullptr);
+            simReleaseBuffer(str);
+        }
+        str=simGetExtensionString(lightHandle,-1,"normalBias@lightProjection@openGL3");
+        if (str!=nullptr)
+        {
+            normalBias=strtof(str,nullptr);
+            simReleaseBuffer(str);
+        }
 
         if (_simulationRunning||(!windowed))
         { // Now set-up that light in OpenGl:
@@ -429,8 +456,6 @@ void executeRenderCommands(bool windowed,int message,void* data)
                 activeSpotLightCounter++;
             }
 
-            //TODO: Will need to check if a light has been removed. If so, we need to re-set the values of the uniforms. (e.g. light len). Do check on the light handle.
-
             int totalCount = activeDirLightCounter + activePointLightCounter + activeSpotLightCounter;
             COcLight* light = lightContainer->getFromId(lightHandle);
             if(light == NULL){
@@ -451,7 +476,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
             bool found = light->seenCamIds.size() != 0 && std::find(light->seenCamIds.begin(), light->seenCamIds.end(), activeBase->getAssociatedObjectHandle()) != light->seenCamIds.end();
             if (!found){
                 light->seenCamIds.push_back(activeBase->getAssociatedObjectHandle());
-                light->initForCamera(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize, activeBase->m_shader);
+                light->initForCamera(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize, bias, normalBias, activeBase->m_shader);
             }
             light->setPose(lightType, m, activeBase->m_shader);
             lightsToRender.push_back(light);

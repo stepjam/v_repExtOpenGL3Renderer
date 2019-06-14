@@ -15,7 +15,7 @@ COcLight::COcLight(int handle, int lightType, C4X4Matrix m, int counter, int tot
     prepareDepthMapFBO(lightType, shadowTextureSize);
 }
 
-void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, QOpenGLShaderProgram* camShader)
+void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, float bias, float normalBias, QOpenGLShaderProgram* camShader)
 {
     lightName = "";
     QString direction = ".direction";
@@ -28,6 +28,9 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
     QString quadratic = ".quadratic";
     QString lightSpaceMatrix = ".lightSpaceMatrix";
     QString shadowMap = ".shadowMap";
+    QString biasS = ".bias";
+    QString normalBiasS = ".normalBias";
+
 
     QVector3D diffuseLight = QVector3D(colors[3],colors[4],colors[5]);
     QVector3D specularLight = QVector3D(colors[6],colors[7],colors[8]);
@@ -82,6 +85,8 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
     quadratic.prepend(lightName);
     lightSpaceMatrix.prepend(lightName);
     shadowMap.prepend(lightName);
+    biasS.prepend(lightName);
+    normalBiasS.prepend(lightName);
 
     // In vrep, you cant set the ambient light per light source.
     camShader->setUniformValue(camShader->uniformLocation(diffuse), diffuseLight);
@@ -89,6 +94,9 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
     camShader->setUniformValue(camShader->uniformLocation(constant), constAttenuation);
     camShader->setUniformValue(camShader->uniformLocation(linear), linAttenuation);
     camShader->setUniformValue(camShader->uniformLocation(quadratic), quadAttenuation);
+
+    camShader->setUniformValue(camShader->uniformLocation(biasS), bias);
+    camShader->setUniformValue(camShader->uniformLocation(normalBiasS), normalBias);
 
     if (lightType == sim_light_omnidirectional_subtype) {
         // Hack in and set the other maps also equal to this so the shader works

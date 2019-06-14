@@ -17,6 +17,8 @@ struct DirLight {
 
     mat4 lightSpaceMatrix;
     sampler2D shadowMap;
+    float bias;
+    float normalBias;
 };
 
 struct PointLight {
@@ -31,6 +33,8 @@ struct PointLight {
     vec3 specular;
 
     float farPlane;
+    float bias;
+    float normalBias;
 };
 
 struct SpotLight {
@@ -49,6 +53,8 @@ struct SpotLight {
 
     mat4 lightSpaceMatrix;
     sampler2D shadowMap;
+    float bias;
+    float normalBias;
 };
 
 out vec4 FragColor;
@@ -110,8 +116,8 @@ vec3 gridSamplingDisk[20] = vec3[]
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
-float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMap, bool spotType);
-float PointShadowCalculation(vec3 lightPos, samplerCube cubeMap, float farPlane);
+float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMap, float bias, float normalBias);
+float PointShadowCalculation(vec3 lightPos, samplerCube cubeMap, float farPlane, float bias, float normalBias);
 
 void main()
 {
@@ -133,19 +139,19 @@ void main()
         // We are not allowed to store the struct in a temp, apparently.
         if (i == 0){
             lresult = CalcDirLight(dirLight0, norm, viewDir);
-            shadow = ShadowCalculation(dirLight0.lightSpaceMatrix, dirLight0.position, dirLight0.shadowMap, false);
+            shadow = ShadowCalculation(dirLight0.lightSpaceMatrix, dirLight0.position, dirLight0.shadowMap, dirLight0.bias, dirLight0.normalBias);
         } else if (i == 1){
             lresult = CalcDirLight(dirLight1, norm, viewDir);
-            shadow = ShadowCalculation(dirLight1.lightSpaceMatrix, dirLight1.position, dirLight1.shadowMap, false);
+            shadow = ShadowCalculation(dirLight1.lightSpaceMatrix, dirLight1.position, dirLight1.shadowMap, dirLight1.bias, dirLight1.normalBias);
         } else if (i == 2){
             lresult = CalcDirLight(dirLight2, norm, viewDir);
-            shadow = ShadowCalculation(dirLight2.lightSpaceMatrix, dirLight2.position, dirLight2.shadowMap, false);
+            shadow = ShadowCalculation(dirLight2.lightSpaceMatrix, dirLight2.position, dirLight2.shadowMap, dirLight2.bias, dirLight2.normalBias);
         } else if (i == 3){
             lresult = CalcDirLight(dirLight3, norm, viewDir);
-            shadow = ShadowCalculation(dirLight3.lightSpaceMatrix, dirLight3.position, dirLight3.shadowMap, false);
+            shadow = ShadowCalculation(dirLight3.lightSpaceMatrix, dirLight3.position, dirLight3.shadowMap, dirLight3.bias, dirLight3.normalBias);
         } else if (i == 4){
             lresult = CalcDirLight(dirLight4, norm, viewDir);
-            shadow = ShadowCalculation(dirLight4.lightSpaceMatrix, dirLight4.position, dirLight4.shadowMap, false);
+            shadow = ShadowCalculation(dirLight4.lightSpaceMatrix, dirLight4.position, dirLight4.shadowMap, dirLight4.bias, dirLight4.normalBias);
         }
         result += lresult * (1.0 - shadow);
     }
@@ -157,19 +163,19 @@ void main()
 
         if (i == 0){
             lresult = CalcPointLight(pointLight0, norm, FragPos, viewDir);
-            shadow = PointShadowCalculation(pointLight0.position, depthCubeMap0, pointLight0.farPlane);
+            shadow = PointShadowCalculation(pointLight0.position, depthCubeMap0, pointLight0.farPlane, pointLight0.bias, pointLight0.normalBias);
         }else if (i == 1){
             lresult = CalcPointLight(pointLight1, norm, FragPos, viewDir);
-            shadow = PointShadowCalculation(pointLight1.position, depthCubeMap1, pointLight1.farPlane);
+            shadow = PointShadowCalculation(pointLight1.position, depthCubeMap1, pointLight1.farPlane, pointLight1.bias, pointLight1.normalBias);
         }else if (i == 2){
             lresult = CalcPointLight(pointLight2, norm, FragPos, viewDir);
-            shadow = PointShadowCalculation(pointLight2.position, depthCubeMap2, pointLight2.farPlane);
+            shadow = PointShadowCalculation(pointLight2.position, depthCubeMap2, pointLight2.farPlane, pointLight2.bias, pointLight2.normalBias);
         }else if (i == 3){
             lresult = CalcPointLight(pointLight3, norm, FragPos, viewDir);
-            shadow = PointShadowCalculation(pointLight3.position, depthCubeMap3, pointLight3.farPlane);
+            shadow = PointShadowCalculation(pointLight3.position, depthCubeMap3, pointLight3.farPlane, pointLight3.bias, pointLight3.normalBias);
         }else if (i == 4){
             lresult = CalcPointLight(pointLight4, norm, FragPos, viewDir);
-            shadow = PointShadowCalculation(pointLight4.position, depthCubeMap4, pointLight4.farPlane);
+            shadow = PointShadowCalculation(pointLight4.position, depthCubeMap4, pointLight4.farPlane, pointLight4.bias, pointLight4.normalBias);
         }
 
         result += lresult * (1.0 - shadow);
@@ -182,19 +188,19 @@ void main()
         // We are not allowed to store the struct in a temp, apparently.
         if (i == 0){
             lresult = CalcSpotLight(spotLight0, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight0.lightSpaceMatrix, spotLight0.position, spotLight0.shadowMap, true);
+            shadow = ShadowCalculation(spotLight0.lightSpaceMatrix, spotLight0.position, spotLight0.shadowMap, spotLight0.bias, spotLight0.normalBias);
         } else if (i == 1){
             lresult = CalcSpotLight(spotLight1, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight1.lightSpaceMatrix, spotLight1.position, spotLight1.shadowMap, true);
+            shadow = ShadowCalculation(spotLight1.lightSpaceMatrix, spotLight1.position, spotLight1.shadowMap, spotLight1.bias, spotLight1.normalBias);
         } else if (i == 2){
             lresult = CalcSpotLight(spotLight2, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight2.lightSpaceMatrix, spotLight2.position, spotLight2.shadowMap, true);
+            shadow = ShadowCalculation(spotLight2.lightSpaceMatrix, spotLight2.position, spotLight2.shadowMap, spotLight2.bias, spotLight2.normalBias);
         } else if (i == 3){
             lresult = CalcSpotLight(spotLight3, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight3.lightSpaceMatrix, spotLight3.position, spotLight3.shadowMap, true);
+            shadow = ShadowCalculation(spotLight3.lightSpaceMatrix, spotLight3.position, spotLight3.shadowMap, spotLight3.bias, spotLight3.normalBias);
         } else if (i == 4){
             lresult = CalcSpotLight(spotLight4, norm, FragPos, viewDir);
-            shadow = ShadowCalculation(spotLight4.lightSpaceMatrix, spotLight4.position, spotLight4.shadowMap, true);
+            shadow = ShadowCalculation(spotLight4.lightSpaceMatrix, spotLight4.position, spotLight4.shadowMap, spotLight4.bias, spotLight4.normalBias);
         }
 
         result += lresult * (1.0 - shadow);
@@ -276,7 +282,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     return (diffuse + specular);
 }
 
-float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMap, bool spotType)
+float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMap, float bias, float normalBias)
 {
     vec4 fragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
 
@@ -292,7 +298,7 @@ float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMa
     // calculate bias (based on depth map resolution and slope)
     vec3 normal = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
-    float bias = max((spotType ? 0.0005 : 0.016) * (1.0 - dot(normal, lightDir)), spotType ? 0.0001 : 0.0001);
+    bias = max(normalBias * (1.0 - dot(normal, lightDir)), bias);
 
     // check whether current frag pos is in shadow
     // PCF
@@ -315,7 +321,7 @@ float ShadowCalculation(mat4 lightSpaceMatrix, vec3 lightPos, sampler2D shadowMa
     return shadow;
 }
 
-float PointShadowCalculation(vec3 lightPos, samplerCube cubeMap, float farPlane)
+float PointShadowCalculation(vec3 lightPos, samplerCube cubeMap, float farPlane, float bias, float normalBias)
 {
 
     // get vector between fragment position and light position
@@ -327,7 +333,7 @@ float PointShadowCalculation(vec3 lightPos, samplerCube cubeMap, float farPlane)
     // Bias calc
     vec3 normal = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.001);
+    bias = max(normalBias * (1.0 - dot(normal, lightDir)), bias);
 
     int samples = 20;
     float viewDistance = length(viewPos - FragPos);

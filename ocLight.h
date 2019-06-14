@@ -13,7 +13,7 @@ class COcLight: protected QOpenGLExtraFunctions
 public:
      COcLight(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize);
     ~COcLight();
-     void initForCamera(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, QOpenGLShaderProgram* camShader);
+     void initForCamera(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, float bias, float normalBias, QOpenGLShaderProgram* camShader);
      void renderDepthFromLight(QOpenGLShaderProgram* depthSh, std::vector<COcMesh*>* meshesToRender);
      unsigned int depthMapFBO;
      unsigned int depthMap;
