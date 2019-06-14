@@ -473,11 +473,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
                     lightContainer->add(light);
                 }
             }
-            bool found = light->seenCamIds.size() != 0 && std::find(light->seenCamIds.begin(), light->seenCamIds.end(), activeBase->getAssociatedObjectHandle()) != light->seenCamIds.end();
-            if (!found){
-                light->seenCamIds.push_back(activeBase->getAssociatedObjectHandle());
-                light->initForCamera(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize, bias, normalBias, activeBase->m_shader);
-            }
+            light->initForCamera(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize, bias, normalBias, activeBase->m_shader);
             light->setPose(lightType, m, activeBase->m_shader);
             lightsToRender.push_back(light);
         }

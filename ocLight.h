@@ -24,7 +24,6 @@ public:
 
      void setPose(int lightType, C4X4Matrix m, QOpenGLShaderProgram* camShader);
 
-     std::vector<int> seenCamIds;
 protected:
      int _usedCount;
      int _id;

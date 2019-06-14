@@ -1,5 +1,6 @@
 #include "ocTexture.h"
 #include <QOpenGLExtraFunctions>
+#include <iostream>
 
 #define TEXTURE_INIT_USED_COUNT 10
 
@@ -48,16 +49,18 @@ void COcTexture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,i
     GLint colInt=GL_NEAREST;
     if (interpolateColors)
         colInt=GL_LINEAR;
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,colInt);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,colInt);
-    GLint repS=GL_CLAMP;
+    GLint repS=GL_CLAMP_TO_EDGE;
     if (repeatU)
         repS=GL_REPEAT;
     glTexParameteri (GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,repS);
-    GLint repT=GL_CLAMP;
+    GLint repT=GL_CLAMP_TO_EDGE;
     if (repeatV)
         repT=GL_REPEAT;
     glTexParameteri (GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,repT);
+
+    std::cout << "3: " << glGetError() << std::endl;
     glBindTexture(GL_TEXTURE_2D,_textureName);
 }
 

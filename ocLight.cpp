@@ -98,19 +98,6 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
     camShader->setUniformValue(camShader->uniformLocation(biasS), bias);
     camShader->setUniformValue(camShader->uniformLocation(normalBiasS), normalBias);
 
-    if (lightType == sim_light_omnidirectional_subtype) {
-        // Hack in and set the other maps also equal to this so the shader works
-        for (int i = counter; i < 5; i++){
-            QString depthCubeMaps = "depthCubeMap";
-            depthCubeMaps.append(QString::number(i));
-            camShader->setUniformValue(
-                        camShader->uniformLocation(depthCubeMaps), totalcount);
-        }
-    } else {
-        camShader->setUniformValue(
-                    camShader->uniformLocation(shadowMap), totalcount);
-    }
-
     _usedCount=LIGHT_INIT_USED_COUNT;
     _id = handle;
 }

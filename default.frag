@@ -1,7 +1,7 @@
 #version 330 core
 
 struct Material {
-    vec3 ambient;
+    vec4 ambient;
     vec3 diffuse;
     vec3 specular;
     float shininess;
@@ -64,6 +64,7 @@ in vec3 Normal;
 in vec2 TexCoords;
 
 uniform sampler2D texture0;
+uniform int textureApplyMode;
 
 uniform vec3 sceneAmbient;
 uniform vec3 viewPos;
@@ -121,16 +122,23 @@ float PointShadowCalculation(vec3 lightPos, samplerCube cubeMap, float farPlane,
 
 void main()
 {
-
     // Lighting properties
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
 
     // Give it some intial ambient light
-    vec3 ambient = sceneAmbient * vec3(texture(texture0, TexCoords)) * material.ambient;
+    vec4 ambient = texture(texture0, TexCoords);
+
+    // textureApplyMode 1 (GL_DECAL) gets applied later.
+    if (textureApplyMode == 2)  // ADD
+        ambient = (ambient + material.ambient, 1.0) * vec4(sceneAmbient, 1.0);
+    else if (textureApplyMode == 1)
+        ambient = material.ambient;
+    else if (textureApplyMode != 1)
+        // In this case, we either have no texture, or we want to use GL_BLEND.
+        ambient *= material.ambient * vec4(sceneAmbient, 1.0);
 
     vec3 result = vec3(0.0);
-
     // phase 1: directional lighting
     for(int i = 0; i < dirLightLen && i < MAX_LIGHTS; i++)
     {
@@ -177,7 +185,6 @@ void main()
             lresult = CalcPointLight(pointLight4, norm, FragPos, viewDir);
             shadow = PointShadowCalculation(pointLight4.position, depthCubeMap4, pointLight4.farPlane, pointLight4.bias, pointLight4.normalBias);
         }
-
         result += lresult * (1.0 - shadow);
     }
     // phase 3: spot light
@@ -202,12 +209,16 @@ void main()
             lresult = CalcSpotLight(spotLight4, norm, FragPos, viewDir);
             shadow = ShadowCalculation(spotLight4.lightSpaceMatrix, spotLight4.position, spotLight4.shadowMap, spotLight4.bias, spotLight4.normalBias);
         }
-
         result += lresult * (1.0 - shadow);
     }
 
-    vec3 final = ambient + result; //(1.0 - shadow) * result;
-    FragColor = vec4(final, 1.0);
+    FragColor = ambient + vec4(result, 0.0);
+    if (textureApplyMode == 1){
+        // textureApplyMode == 1 is DECAL
+        vec4 coltex = texture(texture0, TexCoords.st);
+        vec3 col = FragColor.rgb * (1.0-coltex.a) + coltex.rgb * coltex.a;
+        FragColor = vec4(col, FragColor.a);
+    }
 }
 
 // calculates the color when using a directional light.

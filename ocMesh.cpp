@@ -136,7 +136,7 @@ void COcMesh::render(QOpenGLShaderProgram* m_shader)
     QVector3D ambientDiffuse = QVector3D(colors[0],colors[1],colors[2]);
     QVector3D specular = QVector3D(colors[6],colors[7],colors[8]);
 
-    m_shader->setUniformValue(m_shader->uniformLocation("material.ambient"), ambientDiffuse);
+    m_shader->setUniformValue(m_shader->uniformLocation("material.ambient"), QVector4D(ambientDiffuse, translucid ? opacityFactor : 1.0));
     m_shader->setUniformValue(m_shader->uniformLocation("material.diffuse"), ambientDiffuse);
     m_shader->setUniformValue(m_shader->uniformLocation("material.specular"), specular);
     m_shader->setUniformValue(m_shader->uniformLocation("material.shininess"), shininess);
@@ -148,11 +148,13 @@ void COcMesh::render(QOpenGLShaderProgram* m_shader)
     }
     else
     {
+        applyMode = -1;
         glBindTexture(GL_TEXTURE_2D, blankTexture);
         GLubyte texData[] = { 255, 255, 255, 255 };
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData);
     }
     m_shader->setUniformValue(m_shader->uniformLocation("texture0"), 0);
+    m_shader->setUniformValue(m_shader->uniformLocation("textureApplyMode"), applyMode);
 
     m_shader->bind();
 
