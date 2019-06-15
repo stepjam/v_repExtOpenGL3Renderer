@@ -461,17 +461,6 @@ void executeRenderCommands(bool windowed,int message,void* data)
             if(light == NULL){
                 light = new COcLight(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize);
                 lightContainer->add(light);
-            } else {
-                // We have the light, but check that it is in the expected position in the list.
-                int i = lightContainer->getIndex(lightHandle);
-                if (i + 1 != totalCount) {
-                    // A light has been deleted...
-                    // Means we need to rebuild all lights for this render. Just invalidate the rest of the lights...
-                    lightContainer->removeAllFromIndex(i);
-                    activeBase->makeContextCurrent();
-                    light = new COcLight(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize);
-                    lightContainer->add(light);
-                }
             }
             light->initForCamera(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize, bias, normalBias, activeBase->m_shader);
             light->setPose(lightType, m, activeBase->m_shader);

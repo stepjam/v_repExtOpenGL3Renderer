@@ -59,8 +59,6 @@ void COcTexture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,i
     if (repeatV)
         repT=GL_REPEAT;
     glTexParameteri (GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,repT);
-
-    std::cout << "3: " << glGetError() << std::endl;
     glBindTexture(GL_TEXTURE_2D,_textureName);
 }
 
