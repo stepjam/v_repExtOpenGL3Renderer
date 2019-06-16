@@ -2,13 +2,15 @@
 #include "v_repLib.h"
 #include "4X4Matrix.h"
 #include <iostream>
-#include "openglWidget.h"
+#include "openglWindow.h"
 #include "openglOffscreen.h"
-#include "ocLight.h"
-#include "lightShaders.h"
 #include <QCoreApplication>
 #include <algorithm>
-
+#include "shaderProgram.h"
+#include "light.h"
+#include "mesh.h"
+#include "texture.h"
+#include <chrono>
 
 #ifdef _WIN32
     #include <direct.h>
@@ -24,8 +26,16 @@
 
 LIBRARY vrepLib;
 
+// Shadeers to be shared between all surfaces.
+ShaderProgram* depthShader = NULL;
+ShaderProgram* omniShader = NULL;
+
+// Meshes and Textures to be shared between all surfaces.
+COcContainer<Mesh>* meshContainer = new COcContainer<Mesh>();
+COcContainer<Texture>* textureContainer = new COcContainer<Texture>();
+COcContainer<Light>* lightContainer = new COcContainer<Light>();
+
 int stepsSinceLastShadowMapRender = 99;
-COcContainer<COcLight>* lightContainer = NULL;
 
 QOpenGLContext* _qContext = NULL;
 
@@ -41,16 +51,15 @@ int activeDirLightCounter, activePointLightCounter, activeSpotLightCounter;
 bool _simulationRunning=false;
 bool _cleanUp=false;
 
-std::vector<COpenglWidget*> oglWidgets;
+std::vector<OpenglWindow*> oglWindows;
 std::vector<COpenglOffscreen*> oglOffscreens;
 
 COpenglBase* activeBase = NULL;
-LightShaders* lightShaders = NULL;
 
 QVector3D sceneAmbientLight;
 
-std::vector<COcLight*> lightsToRender;
-std::vector<COcMesh*> meshesToRender;
+std::vector<Light*> lightsToRender;
+std::vector<Mesh*> meshesToRender;
 
 void simulationAboutToStart()
 {
@@ -69,27 +78,33 @@ void simulationGuiPass()
 {
     if (_cleanUp){
         // Windowed views can only run while simulation is running
-        delete lightShaders;
-        lightShaders = NULL;
-        delete lightContainer;
-        lightContainer = NULL;
-        for (size_t i=0;i<oglWidgets.size();i++){
-            delete oglWidgets[i];
-        }
+        // Remove shaders
+        delete depthShader;
+        delete omniShader;
+        omniShader = depthShader = NULL;
+
+        // Remove all of the meshes
+        meshContainer->removeAll();
+        textureContainer->removeAll();
+        lightContainer->removeAll();
+
+        // Cleanup all offscreen surfaces and windows
+        for (size_t i=0;i<oglWindows.size();i++)
+            delete oglWindows[i];
         for (size_t i=0;i<oglOffscreens.size();i++)
             delete oglOffscreens[i];
         oglOffscreens.clear();
-        oglWidgets.clear();
+        oglWindows.clear();
         _cleanUp = false;
     }
 }
 
-COpenglWidget* getWidget(int objectHandle)
+OpenglWindow* getWindow(int objectHandle)
 {
-    for (size_t i=0;i<oglWidgets.size();i++)
+    for (size_t i=0;i<oglWindows.size();i++)
     {
-        if (oglWidgets[i]->getAssociatedObjectHandle()==objectHandle)
-            return(oglWidgets[i]);
+        if (oglWindows[i]->getAssociatedObjectHandle()==objectHandle)
+            return(oglWindows[i]);
     }
     return(NULL);
 }
@@ -111,7 +126,7 @@ void removeOffscreen(int objectHandle)
         if (oglOffscreens[i]->getAssociatedObjectHandle()==objectHandle)
         {
             delete lightContainer;
-            lightContainer = new COcContainer<COcLight>();;
+            lightContainer = new COcContainer<Light>();;
             delete oglOffscreens[i];
             oglOffscreens.erase(oglOffscreens.begin()+i);
             return;
@@ -186,6 +201,9 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
 
 VREP_DLLEXPORT void v_repEnd()
 { // This is called just once, at the end of V-REP
+    delete textureContainer;
+    delete meshContainer;
+    delete lightContainer;
     for (size_t i=0;i<oglOffscreens.size();i++)
         delete oglOffscreens[i];
     if (_qContext != NULL)
@@ -258,35 +276,32 @@ void executeRenderCommands(bool windowed,int message,void* data)
             _qContext->create();
         }
 
-        if (lightContainer == NULL)
-            lightContainer = new COcContainer<COcLight>();
-
         COpenglBase* oglItem=NULL;
         if (windowed&&_simulationRunning)
         {
-            COpenglWidget* oglWidget=getWidget(visionSensorOrCameraId);
-            if (oglWidget==NULL)
+            OpenglWindow* oglWindow=getWindow(visionSensorOrCameraId);
+            if (oglWindow==NULL)
             {
-                oglWidget=new COpenglWidget(visionSensorOrCameraId, _qContext);
-                oglWidget->showAtGivenSizeAndPos(resolutionX,resolutionY,posX,posY);
+                oglWindow=new OpenglWindow(visionSensorOrCameraId, _qContext);
+                oglWindow->showAtGivenSizeAndPos(resolutionX,resolutionY,posX,posY);
 
-                oglWidgets.push_back(oglWidget);
+                oglWindows.push_back(oglWindow);
 
-                oglWidget->makeContextCurrent();
+                oglWindow->makeContextCurrent();
 
                 std::string glVersion = std::string((const char*)glGetString(GL_VERSION));
                 float version = std::stof(glVersion);
                 if (version < 3.2)
                     std::cout << "This renderer requires atleast OpenGL 3.2. The version available is: " << glVersion << std::endl;
 
-                oglWidget->initGL();
+                oglWindow->initGL();
             }
             // the window size can change, we return those values:
-            oglWidget->getWindowResolution(resolutionX,resolutionY);
+            oglWindow->getWindowResolution(resolutionX,resolutionY);
             ((int*)valPtr[0])[0]=resolutionX;
             ((int*)valPtr[1])[0]=resolutionY;
 
-            oglItem=oglWidget;
+            oglItem=oglWindow;
         }
         else
         { // non-windowed
@@ -317,6 +332,12 @@ void executeRenderCommands(bool windowed,int message,void* data)
 
         activeBase = oglItem;
 
+        if (omniShader == NULL)
+        {
+            depthShader = new ShaderProgram(":/shadows/depth.vert", ":/shadows/depth.frag", "");
+            omniShader = new ShaderProgram(":/shadows/omni_depth.vert", ":/shadows/omni_depth.frag", "");
+        }
+
         if (oglItem!=NULL)
         {
             oglItem->makeContextCurrent();
@@ -344,19 +365,15 @@ void executeRenderCommands(bool windowed,int message,void* data)
                         m4_[0][2], m4_[1][2], m4_[2][2], m4_[3][2],
                         m4_[0][3], m4_[1][3], m4_[2][3], m4_[3][3]);
 
-            oglItem->m_shader->setUniformValue(
-                        oglItem->m_shader->uniformLocation("view"), m44);
+            oglItem->shader->setUniformValue("view", m44);
 
             QVector3D sceneAmbientLight = QVector3D(amb[0],amb[1],amb[2]);
-            oglItem->m_shader->setUniformValue(
-                        oglItem->m_shader->uniformLocation("sceneAmbient"), sceneAmbientLight);
+            oglItem->shader->setUniformValue("sceneAmbient", sceneAmbientLight);
 
             activeDirLightCounter=0;
             activePointLightCounter=0;
             activeSpotLightCounter=0;
         }
-        if (lightShaders == NULL)
-            lightShaders = new LightShaders();
     }
 
     if (message==sim_message_eventcallback_extrenderer_light)
@@ -457,20 +474,19 @@ void executeRenderCommands(bool windowed,int message,void* data)
             }
 
             int totalCount = activeDirLightCounter + activePointLightCounter + activeSpotLightCounter;
-            COcLight* light = lightContainer->getFromId(lightHandle);
+            Light* light = lightContainer->getFromId(lightHandle);
             if(light == NULL){
-                light = new COcLight(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize);
+                light = new Light(lightType, shadowTextureSize);
                 lightContainer->add(light);
             }
-            light->initForCamera(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize, bias, normalBias, activeBase->m_shader);
-            light->setPose(lightType, m, activeBase->m_shader);
+            light->initForCamera(lightHandle, lightType, m, counter, totalCount, colors, constAttenuation, linAttenuation, quadAttenuation, cutoffAngle, spotExponent, nearPlane, farPlane, orthoSize, shadowTextureSize, bias, normalBias, activeBase->shader);
+            light->setPose(lightType, m, activeBase->shader);
             lightsToRender.push_back(light);
         }
     }
 
     if (message==sim_message_eventcallback_extrenderer_mesh)
     {
-        // verticies come in as local space. What is tr?
         // Collect mesh data from V-REP:
         void** valPtr=(void**)data;
         float* vertices=((float*)valPtr[0]);
@@ -504,7 +520,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
             bool repeatV=false;
             bool interpolateColors=false;
             int applyMode=0;
-            COcTexture* theTexture=NULL;
+            Texture* theTexture=NULL;
             if (textured)
             {
                 // Read some additional data from V-REP (i.e. texture data):
@@ -518,18 +534,18 @@ void executeRenderCommands(bool windowed,int message,void* data)
                 interpolateColors=((bool*)valPtr[16])[0];
                 applyMode=((int*)valPtr[17])[0];
 
-                theTexture=lightShaders->textureContainer->getFromId(texId);
+                theTexture=textureContainer->getFromId(texId);
                 if (theTexture==NULL)
                 {
-                    theTexture=new COcTexture(texId,textureBuff,textureSizeX,textureSizeY);
-                    lightShaders->textureContainer->add(theTexture);
+                    theTexture=new Texture(texId,textureBuff,textureSizeX,textureSizeY);
+                    textureContainer->add(theTexture);
                 }
             }
-            COcMesh* mesh=lightShaders->meshContainer->getFromId(geomId);
+            Mesh* mesh=meshContainer->getFromId(geomId);
             if (mesh==NULL)
             {
-                mesh=new COcMesh(geomId,vertices,verticesCnt*3,indices,triangleCnt*3,normals,normalsCnt*3,texCoords,texCoordCnt*2, edges);
-                lightShaders->meshContainer->add(mesh);
+                mesh=new Mesh(geomId,vertices,verticesCnt*3,indices,triangleCnt*3,normals,normalsCnt*3,texCoords,texCoordCnt*2, edges);
+                meshContainer->add(mesh);
             }
             mesh->store(tr,colors,textured,shadingAngle,translucid,opacityFactor,backfaceCulling,repeatU,repeatV,interpolateColors,applyMode,theTexture,visibleEdges);
             meshesToRender.push_back(mesh);
@@ -549,14 +565,11 @@ void executeRenderCommands(bool windowed,int message,void* data)
 #endif
 
         if(activeDirLightCounter == 0)
-            activeBase->m_shader->setUniformValue(
-                        activeBase->m_shader->uniformLocation("dirLightLen"), 0);
+            activeBase->shader->setUniformValue("dirLightLen", 0);
         if(activePointLightCounter == 0)
-            activeBase->m_shader->setUniformValue(
-                        activeBase->m_shader->uniformLocation("pointLightLen"), 0);
+            activeBase->shader->setUniformValue("pointLightLen", 0);
         if(activeSpotLightCounter == 0)
-            activeBase->m_shader->setUniformValue(
-                        activeBase->m_shader->uniformLocation("spotLightLen"), 0);
+            activeBase->shader->setUniformValue("spotLightLen", 0);
 
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, activeBase->blankTexture);
@@ -566,8 +579,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
         for (int i = 0; i < MAX_LIGHTS; i++){
             QString depthCubeMaps = "depthCubeMap";
             depthCubeMaps.append(QString::number(i));
-            activeBase->m_shader->setUniformValue(
-                        activeBase->m_shader->uniformLocation(depthCubeMaps), 1);
+            activeBase->shader->setUniformValue(depthCubeMaps, 1);
         }
 
         glActiveTexture(GL_TEXTURE2);
@@ -577,26 +589,24 @@ void executeRenderCommands(bool windowed,int message,void* data)
             QString lightName = "spotLight";
             lightName.append(QString::number(i));
             lightName.append(".shadowMap");
-            activeBase->m_shader->setUniformValue(
-                        activeBase->m_shader->uniformLocation(lightName), 2);
+            activeBase->shader->setUniformValue(lightName, 2);
         }
 
         for (int i = 0; i < MAX_LIGHTS; i++){
             QString lightName = "dirLight";
             lightName.append(QString::number(i));
             lightName.append(".shadowMap");
-            activeBase->m_shader->setUniformValue(
-                        activeBase->m_shader->uniformLocation(lightName), 2);
+            activeBase->shader->setUniformValue(lightName, 2);
         }
 
-        if (stepsSinceLastShadowMapRender >= oglWidgets.size() + oglOffscreens.size()){
+        if (stepsSinceLastShadowMapRender >= oglWindows.size() + oglOffscreens.size()){
             for (int i=0;i<int(lightsToRender.size());i++)
             {
-                QOpenGLShaderProgram* depthSh = lightShaders->depthShader;
+                ShaderProgram* depthSh = depthShader;
                 if (lightsToRender[i]->lightType == sim_light_omnidirectional_subtype)
-                    depthSh = lightShaders->omniDepthShader;
+                    depthSh = omniShader;
 
-                lightsToRender[i]->renderDepthFromLight(depthSh, &meshesToRender);
+                lightsToRender[i]->renderDepthFromLight(depthSh, meshesToRender);
             }
             stepsSinceLastShadowMapRender = 0;
         }
@@ -605,7 +615,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
         activeBase->makeContextCurrent();
         activeBase->bindFramebuffer();
         activeBase->clearViewport();
-        activeBase->m_shader->bind();
+        activeBase->shader->bind();
 
         // It seems Sampler2Ds and SamplerCubes cant match to the same ID
         int omnis_seen = 0;
@@ -620,8 +630,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
                 glBindTexture(GL_TEXTURE_CUBE_MAP, lightsToRender[i]->depthMap);
                 QString depthCubeMaps = "depthCubeMap";
                 depthCubeMaps.append(QString::number(omnis_seen));
-                activeBase->m_shader->setUniformValue(
-                            activeBase->m_shader->uniformLocation(depthCubeMaps), 3+i);
+                activeBase->shader->setUniformValue(depthCubeMaps, 3+i);
                 omnis_seen += 1;
             }else{
                 glBindTexture(GL_TEXTURE_2D, lightsToRender[i]->depthMap);
@@ -629,15 +638,13 @@ void executeRenderCommands(bool windowed,int message,void* data)
                     QString lightName = "spotLight";
                     lightName.append(QString::number(spots_seen));
                     lightName.append(".shadowMap");
-                    activeBase->m_shader->setUniformValue(
-                                activeBase->m_shader->uniformLocation(lightName), 3+i);
+                    activeBase->shader->setUniformValue(lightName, 3+i);
                     spots_seen += 1;
                 }else if (lightsToRender[i]->lightType == sim_light_directional_subtype) {
                     QString lightName = "dirLight";
                     lightName.append(QString::number(dir_seen));
                     lightName.append(".shadowMap");
-                    activeBase->m_shader->setUniformValue(
-                                activeBase->m_shader->uniformLocation(lightName), 3+i);
+                    activeBase->shader->setUniformValue(lightName, 3+i);
                     dir_seen += 1;
                 }
             }
@@ -647,7 +654,7 @@ void executeRenderCommands(bool windowed,int message,void* data)
 
         for (size_t i=0;i<meshesToRender.size();i++)
         {
-            meshesToRender[i]->render(activeBase->m_shader);
+            meshesToRender[i]->render(activeBase->shader);
         }
 
         lightsToRender.clear();
@@ -657,12 +664,11 @@ void executeRenderCommands(bool windowed,int message,void* data)
         {
             if (_simulationRunning)
             {
-                COpenglWidget* oglWidget=getWidget(visionSensorOrCameraId);
+                OpenglWindow* oglWidget=getWindow(visionSensorOrCameraId);
                 if (oglWidget!=NULL)
                 {
                     if(oglWidget->isExposed())
                         oglWidget->swapBuffers();
-                    oglWidget->doneCurrentContext();
                 }
             }
         }
@@ -691,17 +697,16 @@ void executeRenderCommands(bool windowed,int message,void* data)
                             depthBuffer[i]=((nearTimesFar/(farMinusNear*(farDivFarMinusNear-depthBuffer[i])))-nearClippingPlane)/farMinusNear;
                     }
                 }
-                oglOffscreen->doneCurrentContext();
                 oglOffscreen->unbindFramebuffer();
             }
         }
 
         if (_simulationRunning||(!windowed))
         {
-            lightShaders->meshContainer->decrementAllUsedCount();
-            lightShaders->meshContainer->removeAllUnused();
-            lightShaders->textureContainer->decrementAllUsedCount();
-            lightShaders->textureContainer->removeAllUnused();
+            meshContainer->decrementAllUsedCount();
+            meshContainer->removeAllUnused();
+            textureContainer->decrementAllUsedCount();
+            textureContainer->removeAllUnused();
             lightContainer->decrementAllUsedCount();
             lightContainer->removeAllUnused();
         }

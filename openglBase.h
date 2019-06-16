@@ -4,9 +4,11 @@
 #include <QGLWidget>
 #include <QGLBuffer>
 #include <QOpenGLShaderProgram>
-#include "ocMesh.h"
-#include "ocTexture.h"
-#include "ocContainer.h"
+#include "mesh.h"
+#include "texture.h"
+#include "container.h"
+#include "shaderProgram.h"
+
 
 class COpenglBase: protected QOpenGLExtraFunctions
 {
@@ -22,11 +24,11 @@ public:
     virtual void makeContextCurrent();
     virtual void doneCurrentContext();
 
-    QOpenGLShaderProgram* m_shader;
+    ShaderProgram* shader = NULL;
     unsigned int blankTexture, blankTexture2;
 
 //protected:
-    int _associatedObjectHandle;
+    int associatedObjectHandle;
     int _resX;
     int _resY;
 

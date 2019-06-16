@@ -1,22 +1,22 @@
-#include "ocLight.h"
+#include "light.h"
 #include <QOpenGLExtraFunctions>
 #include "v_repLib.h"
 #include <iostream>
 
 #define LIGHT_INIT_USED_COUNT 10
 
-COcLight::COcLight(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize)
+Light::Light(int lightType, int shadowTextureSize)
+{
+    initializeOpenGLFunctions();
+    prepareDepthMapFBO(lightType, shadowTextureSize);
+}
+
+void Light::initForCamera(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, float bias, float normalBias, ShaderProgram* camShader)
 {
     this->lightType = lightType;
     this->shadowTexSize=shadowTextureSize;
     this->farPlane = far_plane;
-    initializeOpenGLFunctions();
 
-    prepareDepthMapFBO(lightType, shadowTextureSize);
-}
-
-void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counter, int totalcount, float* colors, float constAttenuation, float linAttenuation, float quadAttenuation, float cutoffAngle, int spotExponent, float near_plane, float far_plane, float orthoWidth, int shadowTextureSize, float bias, float normalBias, QOpenGLShaderProgram* camShader)
-{
     lightName = "";
     QString direction = ".direction";
     QString position = ".position";
@@ -44,24 +44,24 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
     {
         lightName.append("dirLight");
         lightName.append(QString::number(counter));
-        camShader->setUniformValue(camShader->uniformLocation("dirLightLen"), counter+1);
+        camShader->setUniformValue("dirLightLen", counter+1);
         lightProjection.ortho(-orthoWidth*0.5f, orthoWidth*0.5f, -orthoWidth*0.5f, orthoWidth*0.5f, near_plane, far_plane);
     } else if (lightType == sim_light_omnidirectional_subtype) {
         lightName.append("pointLight");
         lightName.append(QString::number(counter));
-        camShader->setUniformValue(camShader->uniformLocation("pointLightLen"), counter+1);
+        camShader->setUniformValue("pointLightLen", counter+1);
 
         // 90 degrees making the viewing field large enough to properly fill a single face of the cubemap
         lightProjection.perspective(90, aspect, near_plane, far_plane);
 
         QString farplane = ".farPlane";
         farplane.prepend(lightName);
-        camShader->setUniformValue(camShader->uniformLocation(farplane), farPlane);
+        camShader->setUniformValue(farplane, farPlane);
 
     } else if (lightType == sim_light_spot_subtype) {
         lightName.append("spotLight");
         lightName.append(QString::number(counter));
-        camShader->setUniformValue(camShader->uniformLocation("spotLightLen"), counter+1);
+        camShader->setUniformValue("spotLightLen", counter+1);
 
         lightProjection.perspective(cutoffAngle*radToDeg, aspect, near_plane, far_plane);
 
@@ -71,8 +71,8 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
         outerCutOff.prepend(lightName);
 
         // Make the outer cut-off a little less than the cut off
-        camShader->setUniformValue(camShader->uniformLocation(cutOff), (GLfloat) cos(0.0001f));
-        camShader->setUniformValue(camShader->uniformLocation(outerCutOff), (GLfloat) cos(cutoffAngle));
+        camShader->setUniformValue(cutOff, (GLfloat) cos(0.0001f));
+        camShader->setUniformValue(outerCutOff, (GLfloat) cos(cutoffAngle));
     }
 
     ambient.prepend(lightName);
@@ -89,20 +89,20 @@ void COcLight::initForCamera(int handle, int lightType, C4X4Matrix m, int counte
     normalBiasS.prepend(lightName);
 
     // In vrep, you cant set the ambient light per light source.
-    camShader->setUniformValue(camShader->uniformLocation(diffuse), diffuseLight);
-    camShader->setUniformValue(camShader->uniformLocation(specular), specularLight);
-    camShader->setUniformValue(camShader->uniformLocation(constant), constAttenuation);
-    camShader->setUniformValue(camShader->uniformLocation(linear), linAttenuation);
-    camShader->setUniformValue(camShader->uniformLocation(quadratic), quadAttenuation);
+    camShader->setUniformValue(diffuse, diffuseLight);
+    camShader->setUniformValue(specular, specularLight);
+    camShader->setUniformValue(constant, constAttenuation);
+    camShader->setUniformValue(linear, linAttenuation);
+    camShader->setUniformValue(quadratic, quadAttenuation);
 
-    camShader->setUniformValue(camShader->uniformLocation(biasS), bias);
-    camShader->setUniformValue(camShader->uniformLocation(normalBiasS), normalBias);
+    camShader->setUniformValue(biasS, bias);
+    camShader->setUniformValue(normalBiasS, normalBias);
 
     _usedCount=LIGHT_INIT_USED_COUNT;
     _id = handle;
 }
 
-void COcLight::prepareDepthMapFBO(int lightType, int shadowTextureSize){
+void Light::prepareDepthMapFBO(int lightType, int shadowTextureSize){
 
     glGenFramebuffers(1, &depthMapFBO);
     glGenTextures(1, &depthMap);
@@ -137,7 +137,7 @@ void COcLight::prepareDepthMapFBO(int lightType, int shadowTextureSize){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void COcLight::setPose(int lightType, C4X4Matrix m, QOpenGLShaderProgram* camShader){
+void Light::setPose(int lightType, C4X4Matrix m, ShaderProgram* camShader){
 
     lightPos = QVector3D(m.X(0), m.X(1), m.X(2));
     QVector3D lightDir = QVector3D(m.M.axis[2](0), m.M.axis[2](1), m.M.axis[2](2));
@@ -186,20 +186,20 @@ void COcLight::setPose(int lightType, C4X4Matrix m, QOpenGLShaderProgram* camSha
             lightSpaceMats[i] = lightProjection * lightSpaceMats[i];
     } else {
         lightSpaceMat = lightProjection * lightView;
-        camShader->setUniformValue(camShader->uniformLocation(lightSpaceMatrix), lightSpaceMat);
+        camShader->setUniformValue(lightSpaceMatrix, lightSpaceMat);
     }
 
-    camShader->setUniformValue(camShader->uniformLocation(direction), lightDir);
-    camShader->setUniformValue(camShader->uniformLocation(position), lightPos);
+    camShader->setUniformValue(direction, lightDir);
+    camShader->setUniformValue(position, lightPos);
 }
 
-COcLight::~COcLight()
+Light::~Light()
 {
     glDeleteFramebuffers(1, &depthMapFBO);
     glDeleteTextures(1, &depthMap);
 }
 
-void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vector<COcMesh*>* meshesToRender)
+void Light::renderDepthFromLight(ShaderProgram* depthShader, std::vector<Mesh*> meshesToRender)
 {
     _usedCount = LIGHT_INIT_USED_COUNT;
 
@@ -211,47 +211,43 @@ void COcLight::renderDepthFromLight(QOpenGLShaderProgram* depthShader, std::vect
 
     if (lightType == sim_light_omnidirectional_subtype) {
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
-        depthShader->setUniformValue(
-                    depthShader->uniformLocation("lightPos"), lightPos);
-        depthShader->setUniformValue(
-                    depthShader->uniformLocation("far_plane"), farPlane);
+        depthShader->setUniformValue("lightPos", lightPos);
+        depthShader->setUniformValue("far_plane", farPlane);
         for(int i = 0; i < 6; i++){
-            depthShader->setUniformValue(
-                        depthShader->uniformLocation("lightSpaceMatrix"), lightSpaceMats[i]);
+            depthShader->setUniformValue("lightSpaceMatrix", lightSpaceMats[i]);
 
             GLenum face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, face, depthMap, 0);
             glClear(GL_DEPTH_BUFFER_BIT);
             // render depth of scene to texture (from light's perspective)
-            for (size_t i=0;i<meshesToRender->size();i++)
+            for (size_t i=0;i<meshesToRender.size();i++)
             {
-                (*meshesToRender)[i]->renderDepth(depthShader);
+                (meshesToRender)[i]->renderDepth(depthShader);
             }
         }
     } else {
         glBindTexture(GL_TEXTURE_2D, depthMap);
-        depthShader->setUniformValue(
-                    depthShader->uniformLocation("lightSpaceMatrix"), lightSpaceMat);
+        depthShader->setUniformValue("lightSpaceMatrix", lightSpaceMat);
         // render depth of scene to texture (from light's perspective)
-        for (size_t i=0;i<meshesToRender->size();i++)
+        for (size_t i=0;i<meshesToRender.size();i++)
         {
-            (*meshesToRender)[i]->renderDepth(depthShader);
+            (meshesToRender)[i]->renderDepth(depthShader);
         }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void COcLight::decrementUsedCount()
+void Light::decrementUsedCount()
 {
     _usedCount--;
 }
 
-int COcLight::getUsedCount()
+int Light::getUsedCount()
 {
     return(_usedCount);
 }
 
-int COcLight::getId()
+int Light::getId()
 {
     return(_id);
 }

@@ -1,13 +1,12 @@
-#include "ocMesh.h"
+#include "mesh.h"
 #include <qopengl.h>
 #include <iostream>
-#include <QOpenGLExtraFunctions>
 
 #define MESH_INIT_USED_COUNT 10
 
 unsigned int blankTexture;
 
-COcMesh::COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int normL,float* tex,int texL,unsigned char* ed)
+Mesh::Mesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int normL,float* tex,int texL,unsigned char* ed)
 {
     initializeOpenGLFunctions();
     for (int i=0;i<indL;i++)
@@ -36,7 +35,7 @@ COcMesh::COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int 
     glGenTextures(1,&blankTexture);
 }
 
-COcMesh::~COcMesh()
+Mesh::~Mesh()
 {
     glDeleteTextures(1, &blankTexture);
     glDeleteBuffers(1, &VBO);
@@ -44,7 +43,7 @@ COcMesh::~COcMesh()
     glDeleteVertexArrays(1, &VAO);
 }
 
-void COcMesh::setupMesh()
+void Mesh::setupMesh()
 {
     // create buffers/arrays
     glGenVertexArrays(1, &VAO);
@@ -72,22 +71,22 @@ void COcMesh::setupMesh()
     glBindVertexArray(0);
 }
 
-void COcMesh::decrementUsedCount()
+void Mesh::decrementUsedCount()
 {
     _usedCount--;
 }
 
-int COcMesh::getUsedCount()
+int Mesh::getUsedCount()
 {
     return(_usedCount);
 }
 
-int COcMesh::getId()
+int Mesh::getId()
 {
     return(_id);
 }
 
-void COcMesh::store(const C7Vector& tr,float* colors,bool textured,float shadingAngle,bool translucid,float opacityFactor,bool backfaceCulling,bool repeatU,bool repeatV,bool interpolateColors,int applyMode,COcTexture* texture,bool visibleEdges)
+void Mesh::store(const C7Vector& tr,float* colors,bool textured,float shadingAngle,bool translucid,float opacityFactor,bool backfaceCulling,bool repeatU,bool repeatV,bool interpolateColors,int applyMode,Texture* texture,bool visibleEdges)
 {
     this->tr = tr;
     this->colors = colors;
@@ -104,7 +103,7 @@ void COcMesh::store(const C7Vector& tr,float* colors,bool textured,float shading
     this->visibleEdges = visibleEdges;
 }
 
-void COcMesh::renderDepth(QOpenGLShaderProgram* depthShader)
+void Mesh::renderDepth(ShaderProgram* depthShader)
 {
     // Set the model matrix
     C4Vector axis=tr.Q.getAngleAndAxisNoChecking();
@@ -112,14 +111,14 @@ void COcMesh::renderDepth(QOpenGLShaderProgram* depthShader)
     mm.setToIdentity();
     mm.translate(tr.X(0),tr.X(1),tr.X(2));
     mm.rotate(axis(0)*radToDeg,axis(1),axis(2),axis(3));
-    depthShader->setUniformValue(depthShader->uniformLocation("model"), mm);
+    depthShader->setUniformValue("model", mm);
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
     glBindVertexArray(0);
 }
 
-void COcMesh::render(QOpenGLShaderProgram* m_shader)
+void Mesh::render(ShaderProgram* m_shader)
 {
     _usedCount=MESH_INIT_USED_COUNT;
 
@@ -131,15 +130,15 @@ void COcMesh::render(QOpenGLShaderProgram* m_shader)
     mm.setToIdentity();
     mm.translate(tr.X(0),tr.X(1),tr.X(2));
     mm.rotate(axis(0)*radToDeg,axis(1),axis(2),axis(3));
-    m_shader->setUniformValue(m_shader->uniformLocation("model"), mm);
+    m_shader->setUniformValue("model", mm);
 
     QVector3D ambientDiffuse = QVector3D(colors[0],colors[1],colors[2]);
     QVector3D specular = QVector3D(colors[6],colors[7],colors[8]);
 
-    m_shader->setUniformValue(m_shader->uniformLocation("material.ambient"), QVector4D(ambientDiffuse, translucid ? opacityFactor : 1.0));
-    m_shader->setUniformValue(m_shader->uniformLocation("material.diffuse"), ambientDiffuse);
-    m_shader->setUniformValue(m_shader->uniformLocation("material.specular"), specular);
-    m_shader->setUniformValue(m_shader->uniformLocation("material.shininess"), shininess);
+    m_shader->setUniformValue("material.ambient", QVector4D(ambientDiffuse, translucid ? opacityFactor : 1.0));
+    m_shader->setUniformValue("material.diffuse", ambientDiffuse);
+    m_shader->setUniformValue("material.specular", specular);
+    m_shader->setUniformValue("material.shininess", shininess);
 
     glActiveTexture(GL_TEXTURE0);
     if (textured&&(texture!=0))
@@ -153,8 +152,8 @@ void COcMesh::render(QOpenGLShaderProgram* m_shader)
         GLubyte texData[] = { 255, 255, 255, 255 };
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData);
     }
-    m_shader->setUniformValue(m_shader->uniformLocation("texture0"), 0);
-    m_shader->setUniformValue(m_shader->uniformLocation("textureApplyMode"), applyMode);
+    m_shader->setUniformValue("texture0", 0);
+    m_shader->setUniformValue("textureApplyMode", applyMode);
 
     m_shader->bind();
 

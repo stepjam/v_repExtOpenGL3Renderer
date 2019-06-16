@@ -1,50 +1,50 @@
-#include "openglWidget.h"
+#include "openglWindow.h"
 #include "MyMath.h"
 #include <QResizeEvent>
 #include <iostream>
 #include <QOpenGLFramebufferObject>
 
-COpenglWidget::COpenglWidget(int associatedObjectHandle, QOpenGLContext* qCont, QWindow *parent) : QWindow(parent), COpenglBase(associatedObjectHandle)
+OpenglWindow::OpenglWindow(int associatedObjectHandle, QOpenGLContext* qCont, QWindow *parent) : QWindow(parent), COpenglBase(associatedObjectHandle)
 {
     setSurfaceType(QWindow::OpenGLSurface);
     this->qCont = qCont;
 }
 
-COpenglWidget::~COpenglWidget()
+OpenglWindow::~OpenglWindow()
 {
 }
 
-void COpenglWidget::initGL()
+void OpenglWindow::initGL()
 {
     makeContextCurrent();
     COpenglBase::initGL();
 }
 
-void COpenglWidget::makeContextCurrent()
+void OpenglWindow::makeContextCurrent()
 {
     qCont->makeCurrent(this);
 }
 
-void COpenglWidget::doneCurrentContext()
+void OpenglWindow::doneCurrentContext()
 {
     qCont->doneCurrent();
 }
 
-void COpenglWidget::paintEvent(QPaintEvent* event)
+void OpenglWindow::paintEvent(QPaintEvent* event)
 {
 }
 
-void COpenglWidget::resizeEvent(QResizeEvent* rEvent)
+void OpenglWindow::resizeEvent(QResizeEvent* rEvent)
 {
     _resX=rEvent->size().width() * devicePixelRatio();
     _resY=rEvent->size().height() * devicePixelRatio();
 }
 
-void COpenglWidget::paintGL()
+void OpenglWindow::paintGL()
 {
 }
 
-void COpenglWidget::showAtGivenSizeAndPos(int resX,int resY,int posX,int posY)
+void OpenglWindow::showAtGivenSizeAndPos(int resX,int resY,int posX,int posY)
 {
     if ( (resX<=0)||(resY<=0) )
         showMaximized();
@@ -55,18 +55,18 @@ void COpenglWidget::showAtGivenSizeAndPos(int resX,int resY,int posX,int posY)
     }
 }
 
-void COpenglWidget::getWindowResolution(int& resX,int& resY)
+void OpenglWindow::getWindowResolution(int& resX,int& resY)
 {
     resX=_resX;
     resY=_resY;
 }
 
-void COpenglWidget::bindFramebuffer()
+void OpenglWindow::bindFramebuffer()
 {
     QOpenGLFramebufferObject::bindDefault();
 }
 
-void COpenglWidget::swapBuffers()
+void OpenglWindow::swapBuffers()
 {
     qCont->swapBuffers(this);
 }

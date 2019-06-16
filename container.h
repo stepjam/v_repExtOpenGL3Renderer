@@ -1,5 +1,5 @@
-#ifndef OCCONTAINER_H
-#define OCCONTAINER_H
+#ifndef CONTAINER_H
+#define CONTAINER_H
 
 #include <vector>
 #include <iostream>
@@ -12,6 +12,7 @@ public:
     ~COcContainer();
 
      T* getFromId(int id);
+     void removeAll();
      void add(T* object);
      void decrementAllUsedCount();
      void removeAllUnused();
@@ -29,7 +30,12 @@ COcContainer<T>::COcContainer()
 template <class T>
 COcContainer<T>::~COcContainer()
 {
+    removeAll();
+}
 
+template <class T>
+void COcContainer<T>::removeAll()
+{
     for (int i=0;i<int(objects.size());i++){
         delete objects[i];
     }
@@ -50,6 +56,7 @@ void COcContainer<T>::removeAllUnused()
     {
         if (objects[i]->getUsedCount()<=0)
         {
+            delete objects[i];
             objects.erase(objects.begin()+i);
             i--; // reprocess this position
         }
@@ -94,4 +101,4 @@ void COcContainer<T>::removeAllFromIndex(int id)
     }
 }
 
-#endif // OCCONTAINER_H
+#endif // CONTAINER_H

@@ -2,9 +2,9 @@
 #define LIGHTSHADERS_H
 
 #include "utils.h"
-#include "ocMesh.h"
-#include "ocTexture.h"
-#include "ocContainer.h"
+#include "mesh.h"
+#include "texture.h"
+#include "container.h"
 
 class LightShaders
 {
@@ -14,8 +14,8 @@ public:
     QOpenGLShaderProgram* depthShader;
     QOpenGLShaderProgram* omniDepthShader;
 
-    COcContainer<COcMesh>* meshContainer;
-    COcContainer<COcTexture>* textureContainer;
+    COcContainer<Mesh>* meshContainer;
+    COcContainer<Texture>* textureContainer;
 
 
 protected:

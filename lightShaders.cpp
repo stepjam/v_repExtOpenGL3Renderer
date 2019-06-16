@@ -9,8 +9,8 @@ LightShaders::LightShaders()
     if ( !prepareShaderProgram(omniDepthShader, ":/shadows/omni_depth.vert", ":/shadows/omni_depth.frag", ""))
         return;
 
-    meshContainer = new COcContainer<COcMesh>();
-    textureContainer = new COcContainer<COcTexture>();
+    meshContainer = new COcContainer<Mesh>();
+    textureContainer = new COcContainer<Texture>();
 }
 
 LightShaders::~LightShaders()

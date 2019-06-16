@@ -8,12 +8,12 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLContext>
 
-class COpenglWidget : public QWindow, public COpenglBase
+class OpenglWindow : public QWindow, public COpenglBase
 {
     Q_OBJECT
 public:
-    explicit COpenglWidget(int associatedObjectHandle, QOpenGLContext* qCont, QWindow *parent = 0);
-    ~COpenglWidget();
+    explicit OpenglWindow(int associatedObjectHandle, QOpenGLContext* qCont, QWindow *parent = 0);
+    ~OpenglWindow();
 
     void initGL();
     void makeContextCurrent();

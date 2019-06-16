@@ -1,6 +1,7 @@
 #pragma once
 
-#include <QtOpenGL>
+#include <QObject>
+#include <QOpenGLFramebufferObject>
 
 class CFrameBufferObject : public QObject
 {

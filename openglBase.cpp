@@ -2,23 +2,20 @@
 #include "MyMath.h"
 #include <iostream>
 #include <QOpenGLExtraFunctions>
-#include "utils.h"
-
 
 COpenglBase::COpenglBase(int associatedObjectHandle)
 {
-    _associatedObjectHandle=associatedObjectHandle;
-    m_shader = new QOpenGLShaderProgram();
+    this->associatedObjectHandle = associatedObjectHandle;
 }
 
 COpenglBase::~COpenglBase()
 {
-    delete m_shader;
+    delete shader;
 }
 
 int COpenglBase::getAssociatedObjectHandle()
 {
-    return(_associatedObjectHandle);
+    return(associatedObjectHandle);
 }
 
 void COpenglBase::makeContextCurrent()
@@ -42,9 +39,8 @@ void COpenglBase::initGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Prepare a complete shader program…
-    if ( !prepareShaderProgram(m_shader, ":/default.vert", ":/default.frag", "") )
-        return;
+     // Each surface has its own shader.
+    shader = new ShaderProgram(":/default.vert", ":/default.frag", "");
 
     glGenTextures(1,&blankTexture);
     glGenTextures(1,&blankTexture2);
@@ -52,7 +48,7 @@ void COpenglBase::initGL()
 
 void COpenglBase::clearBuffers(float viewAngle,float orthoViewSize,float nearClippingPlane,float farClippingPlane,bool perspectiveOperation,const float* backColor)
 {
-    m_shader->bind();
+    shader->bind();
     glViewport(0,0,_resX,_resY);
     glClearColor(backColor[0],backColor[1],backColor[2],0.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -80,7 +76,7 @@ void COpenglBase::clearBuffers(float viewAngle,float orthoViewSize,float nearCli
         else
             m_proj.ortho(-orthoViewSize*0.5f*ratio,orthoViewSize*0.5f*ratio,-orthoViewSize*0.5f,orthoViewSize*0.5f,nearClippingPlane,farClippingPlane);
     }
-    m_shader->setUniformValue(m_shader->uniformLocation("projection"), m_proj);
+    shader->setUniformValue("projection", m_proj);
 }
 
 void COpenglBase::clearViewport()

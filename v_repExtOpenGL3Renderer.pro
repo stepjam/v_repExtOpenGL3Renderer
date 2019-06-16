@@ -52,16 +52,16 @@ INCLUDEPATH += "../v_repMath"
 
 SOURCES += \
     ../common/v_repLib.cpp \
-    lightShaders.cpp \
-    utils.cpp \
+    light.cpp \
+    mesh.cpp \
+    openglWindow.cpp \
+    shaderProgram.cpp \
+    texture.cpp \
     v_repExtOpenGL3Renderer.cpp \
-    openglWidget.cpp \
     frameBufferObject.cpp \
     offscreenGlContext.cpp \
     openglOffscreen.cpp \
     openglBase.cpp \
-    ocMesh.cpp \
-    ocTexture.cpp \
     ../v_repMath/MyMath.cpp \
     ../v_repMath/3Vector.cpp \
     ../v_repMath/4Vector.cpp \
@@ -69,21 +69,21 @@ SOURCES += \
     ../v_repMath/7Vector.cpp \
     ../v_repMath/3X3Matrix.cpp \
     ../v_repMath/4X4Matrix.cpp \
-    ../v_repMath/6X6Matrix.cpp \
-    ocLight.cpp
+    ../v_repMath/6X6Matrix.cpp
 
 HEADERS +=\
     ../include/v_repLib.h \
-    lightShaders.h \
-    utils.h \
+    container.h \
+    light.h \
+    mesh.h \
+    openglWindow.h \
+    shaderProgram.h \
+    texture.h \
     v_repExtOpenGL3Renderer.h \
-    openglWidget.h \
     frameBufferObject.h \
     offscreenGlContext.h \
     openglOffscreen.h \
     openglBase.h \
-    ocMesh.h \
-    ocTexture.h \
     ../v_repMath/MyMath.h \
     ../v_repMath/mathDefines.h \
     ../v_repMath/3Vector.h \
@@ -92,9 +92,7 @@ HEADERS +=\
     ../v_repMath/7Vector.h \
     ../v_repMath/3X3Matrix.h \
     ../v_repMath/4X4Matrix.h \
-    ../v_repMath/6X6Matrix.h \
-    ocLight.h \
-    ocContainer.h
+    ../v_repMath/6X6Matrix.h
 
 unix:!symbian {
     maemo5 {

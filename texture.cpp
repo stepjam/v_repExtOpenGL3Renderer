@@ -1,10 +1,10 @@
-#include "ocTexture.h"
+#include "texture.h"
 #include <QOpenGLExtraFunctions>
 #include <iostream>
 
 #define TEXTURE_INIT_USED_COUNT 10
 
-COcTexture::COcTexture(int id,const unsigned char* textureBuff,int textureSizeX,int textureSizeY)
+Texture::Texture(int id,const unsigned char* textureBuff,int textureSizeX,int textureSizeY)
 {
 //    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     initializeOpenGLFunctions();
@@ -17,27 +17,27 @@ COcTexture::COcTexture(int id,const unsigned char* textureBuff,int textureSizeX,
     _usedCount=TEXTURE_INIT_USED_COUNT;
 }
 
-COcTexture::~COcTexture()
+Texture::~Texture()
 {
     glDeleteTextures(1,&_textureName);
 }
 
-void COcTexture::decrementUsedCount()
+void Texture::decrementUsedCount()
 {
     _usedCount--;
 }
 
-int COcTexture::getUsedCount()
+int Texture::getUsedCount()
 {
     return(_usedCount);
 }
 
-int COcTexture::getId()
+int Texture::getId()
 {
     return(_id);
 }
 
-void COcTexture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,int applyMode)
+void Texture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,int applyMode)
 {
     _usedCount=TEXTURE_INIT_USED_COUNT;
     glActiveTexture(GL_TEXTURE0);
@@ -62,7 +62,7 @@ void COcTexture::startTexture(bool repeatU,bool repeatV,bool interpolateColors,i
     glBindTexture(GL_TEXTURE_2D,_textureName);
 }
 
-void COcTexture::endTexture()
+void Texture::endTexture()
 {
 
 }

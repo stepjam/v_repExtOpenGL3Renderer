@@ -1,13 +1,13 @@
-#ifndef OCMESH_H
-#define OCMESH_H
+#ifndef MESH_H
+#define MESH_H
 
 #include <vector>
 #include "7Vector.h"
-#include "ocTexture.h"
+#include "texture.h"
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
-#include <QOpenGLShaderProgram>
 #include <QOpenGLExtraFunctions>
+#include "shaderProgram.h"
 
 struct Vertex {
     // position
@@ -18,15 +18,15 @@ struct Vertex {
     float TexCoords[2];
 };
 
-class COcMesh: protected QOpenGLExtraFunctions
+class Mesh: protected QOpenGLExtraFunctions
 {
 public:
-    COcMesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int normL,float* tex,int texL,unsigned char* ed);
-    ~COcMesh();
+    Mesh(int id,float* vert,int vertL,int* ind,int indL,float* norm,int normL,float* tex,int texL,unsigned char* ed);
+    ~Mesh();
 
-    void renderDepth(QOpenGLShaderProgram* depthShader);
-    void render(QOpenGLShaderProgram* m_shader);
-    void store(const C7Vector& tr, float* colors,bool textured,float shadingAngle,bool translucid,float opacityFactor,bool backfaceCulling,bool repeatU,bool repeatV,bool interpolateColors,int applyMode,COcTexture* texture,bool visibleEdges);
+    void renderDepth(ShaderProgram* depthShader);
+    void render(ShaderProgram* m_shader);
+    void store(const C7Vector& tr, float* colors,bool textured,float shadingAngle,bool translucid,float opacityFactor,bool backfaceCulling,bool repeatU,bool repeatV,bool interpolateColors,int applyMode,Texture* texture,bool visibleEdges);
 
     void decrementUsedCount();
     int getUsedCount();
@@ -51,8 +51,8 @@ private:
     bool repeatV;
     bool interpolateColors;
     int applyMode;
-    COcTexture* texture;
+    Texture* texture;
     bool visibleEdges;
 
 };
-#endif // OCMESH_H
+#endif // MESH_H

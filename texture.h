@@ -1,14 +1,14 @@
-#ifndef OCTEXTURE_H
-#define OCTEXTURE_H
+#ifndef TEXTURE_H
+#define TEXTURE_H
 
 #include <vector>
 #include <QOpenGLExtraFunctions>
 
-class COcTexture: protected QOpenGLExtraFunctions
+class Texture: protected QOpenGLExtraFunctions
 {
 public:
-     COcTexture(int id,const unsigned char* textureBuff,int textureSizeX,int textureSizeY);
-    ~COcTexture();
+     Texture(int id,const unsigned char* textureBuff,int textureSizeX,int textureSizeY);
+    ~Texture();
 
      void decrementUsedCount();
      int getUsedCount();
@@ -27,4 +27,4 @@ protected:
      int _usedCount;
      int _id;
 };
-#endif // OCTEXTURE_H
+#endif // TEXTURE_H
